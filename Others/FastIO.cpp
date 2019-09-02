@@ -1,0 +1,89 @@
+namespace FastIO {
+struct Control {
+  int ct, val;
+  Control(int Ct, int Val = -1) : ct(Ct), val(Val) {}
+  inline Control operator()(int Val) { return Control(ct, Val); }
+} _endl(0), _prs(1), _setprecision(2);
+
+const int IO_SIZE = 1 << 16 | 127;
+
+struct FastIO {
+  char in[IO_SIZE], *p, *pp, out[IO_SIZE], *q, *qq, ch[20], *t, b, K, prs;
+  FastIO() : p(in), pp(in), q(out), qq(out + IO_SIZE), t(ch), b(1), K(6) {}
+  ~FastIO() { fwrite(out, 1, q - out, stdout); }
+  inline char getc() {
+    return p == pp && (pp = (p = in) + fread(in, 1, IO_SIZE, stdin), p == pp)
+               ? (b = 0, EOF)
+               : *p++;
+  }
+  inline void putc(char x) {
+    q == qq && (fwrite(out, 1, q - out, stdout), q = out), *q++ = x;
+  }
+  inline void puts(const char str[]) {
+    fwrite(out, 1, q - out, stdout), fwrite(str, 1, strlen(str), stdout),
+        q = out;
+  }
+  inline void getline(string &s) {
+    s = "";
+    for (char ch; (ch = getc()) != '\n' && b;) s += ch;
+  }
+#define indef(T)                                                               \
+  inline FastIO &operator>>(T &x) {                                            \
+    x = 0;                                                                     \
+    char f = 0, ch;                                                            \
+    while (!isdigit(ch = getc()) && b) f |= ch == '-';                         \
+    while (isdigit(ch)) x = (x << 1) + (x << 3) + (ch ^ 48), ch = getc();      \
+    return x = f ? -x : x, *this;                                              \
+  }
+  indef(int);
+  indef(long long);
+
+  inline FastIO &operator>>(string &s) {
+    s = "";
+    char ch;
+    while (isspace(ch = getc()) && b) {}
+    while (!isspace(ch) && b) s += ch, ch = getc();
+    return *this;
+  }
+  inline FastIO &operator>>(double &x) {
+    x = 0;
+    char f = 0, ch;
+    double d = 0.1;
+    while (!isdigit(ch = getc()) && b) f |= (ch == '-');
+    while (isdigit(ch)) x = x * 10 + (ch ^ 48), ch = getc();
+    if (ch == '.')
+      while (isdigit(ch = getc())) x += d * (ch ^ 48), d *= 0.1;
+    return x = f ? -x : x, *this;
+  }
+#define outdef(_T)                                                             \
+  inline FastIO &operator<<(_T x) {                                            \
+    !x && (putc('0'), 0), x < 0 && (putc('-'), x = -x);                        \
+    while (x) *t++ = x % 10 + 48, x /= 10;                                     \
+    while (t != ch) *q++ = *--t;                                               \
+    return *this;                                                              \
+  }
+  outdef(int);
+  outdef(long long);
+  inline FastIO &operator<<(char ch) { return putc(ch), *this; }
+  inline FastIO &operator<<(const char str[]) { return puts(str), *this; }
+  inline FastIO &operator<<(const string &s) { return puts(s.c_str()), *this; }
+  inline FastIO &operator<<(double x) {
+    int k = 0;
+    this->operator<<(int(x));
+    putc('.');
+    x -= int(x);
+    prs && (x += 5 * pow(10, -K - 1));
+    while (k < K) putc(int(x *= 10) ^ 48), x -= int(x), ++k;
+    return *this;
+  }
+  inline FastIO &operator<<(const Control &cl) {
+    switch (cl.ct) {
+    case 0: putc('\n'); break;
+    case 1: prs = cl.val; break;
+    case 2: K = cl.val; break;
+    }
+    return *this;
+  }
+  inline operator bool() { return b; }
+};
+} // namespace FastIO

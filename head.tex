@@ -1,0 +1,59 @@
+\documentclass[twoside]{article}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{fancyhdr}
+\usepackage{fontenc}
+\usepackage{geometry}
+\usepackage[colorlinks,linkcolor=black]{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{xeCJK}
+
+\setsansfont{GoMono Nerd Font}
+\setmonofont[Mapping={}]{GoMono Nerd Font}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\lstset{
+  language    = c++,
+  breaklines  = true,
+  captionpos  = b,
+  tabsize     = 2,
+  numbers     = left,
+  columns     = fullflexible,
+  keepspaces  = true,
+  commentstyle = \color[RGB]{0,128,0},
+  keywordstyle = \color[RGB]{0,0,255},
+  basicstyle   = \small\ttfamily,
+  rulesepcolor = \color{red!20!green!20!blue!20},
+  showstringspaces = false,
+}
+
+\title{ACM/ICPC Template Manaual}
+\author{cycleke}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{ACM/ICPC Template Manaual, cycleke}
+\begin{document}\small
+\begin{titlepage}
+  \begin{center}
+    \HRule \\ [1cm]
+    \textbf{\Huge{ACM/ICPC Template Manaual}} \\ [0.5cm]
+    \HRule \\ [4cm]
+    \textbf{\Huge{Harbin Institute of Technology}} \\ [1cm]
+    \LARGE{cycleke}
+    \vfill
+    \Large{\today}
+  \end{center}
+  \clearpage
+\end{titlepage}
+\tableofcontents\clearpage
+\pagestyle{fancy}
+\lfoot{}
+\cfoot{\thepage}\rfoot{}
+\setcounter{section}{0}
+\setcounter{page}{1}
+\clearpage
+
+%s
+
+\end{document}
