@@ -126,7 +126,7 @@ inline bool check(const ll &x, const ll &p) {
 inline bool Miller_Rabin(const ll &x) {
   if (x < 2) return false;
   static const int p[12] = {2, 3, 5, 7, 11, 13, 17, 19, 61, 2333, 4567, 24251};
-  for (register int i = 0; i < 12; ++i) {
+  for (int i = 0; i < 12; ++i) {
     if (!(x ^ p[i])) return true;
     if (!check(x, p[i])) return false;
   }
@@ -875,7 +875,7 @@ int tree[MAXN * 2], pre;
 void init(int n, int *a) {
   memset(tree, 0, sizeof(tree));
   for (pre = 1; pre <= n; pre <<= 1) {}
-  for (int i = 1; i <= n; ++i) tree[i + pre] = i;
+  for (int i = 1; i <= n; ++i) tree[i + pre] = a[i];
   for (int i = pre; i; --i) tree[i] = max(tree[i << 1], tree[i << 1 | 1]);
 }
 
@@ -1013,6 +1013,127 @@ int main() {
   cout << ans << "\n";
 
   return 0;
+}
+
+\end{lstlisting}
+\subsection{da}
+\begin{lstlisting}
+char s[MAXN];
+int sa[MAXN], x[MAXN], y[MAXN], c[MAXN];
+int rk[MAXN], height[MAXN], st[17][MAXN], lg[MAXN];
+
+bool cmp(int *r, int i, int j, int l) {
+  return r[i] == r[j] && r[i + l] == r[j + l];
+}
+void da(char *s, int n, int m) {
+  int i, j, p;
+  for (i = 0; i < m; ++i) c[i] = 0;
+  for (i = 0; i < n; ++i) ++c[x[i] = s[i]];
+  for (i = 1; i < m; ++i) c[i] += c[i - 1];
+  for (i = n - 1; ~i; --i) sa[--c[x[i]]] = i;
+  for (p = j = 1; p < n; j <<= 1, m = p) {
+    for (p = 0, i = n - j; i < n; ++i) y[p++] = i;
+    for (i = 0; i < n; ++i)
+      if (sa[i] >= j) y[p++] = sa[i] - j;
+    for (i = 0; i < m; ++i) c[i] = 0;
+    for (i = 0; i < n; ++i) ++c[x[y[i]]];
+    for (i = 1; i < m; ++i) c[i] += c[i - 1];
+    for (i = n - 1; ~i; --i) sa[--c[x[y[i]]]] = y[i];
+    for (swap(x, y), p = 1, x[sa[0]] = 0, i = 1; i < n; ++i)
+      x[sa[i]] = cmp(y, sa[i], sa[i - 1], j) ? p - 1 : p++;
+  }
+}
+
+void get_height(char *s, int n) {
+  int i, j, k;
+  for (i = 0; i < n; ++i) rk[sa[i]] = i;
+  for (i = k = height[rk[0]] = 0; i < n; height[rk[i++]] = k)
+    if (rk[i])
+      for (k > 0 ? --k : 0, j = sa[rk[i] - 1]; s[i + k] == s[j + k]; ++k) {}
+}
+
+void init_st_table(int n) {
+  int lgn = lg[n];
+  for (int i = 0; i < n; ++i) st[0][i] = height[i];
+  for (int i = 1; i <= lgn; ++i)
+    for (int j = 0; j + (1 << i - 1) < n; ++j)
+      st[i][j] = min(st[i - 1][j], st[i - 1][j + (1 << i - 1)]);
+}
+
+int lcp(int i, int j) {
+  if (i > j) swap(i, j);
+  ++i;
+  int lgl = lg[j - i + 1];
+  return min(st[lgl][i], st[lgl][j - (1 << lgl) + 1]);
+}
+
+\end{lstlisting}
+\subsection{SAM}
+\begin{lstlisting}
+struct Node {
+  int len;
+  Node *link, *ch[ALPHABET_SIZE];
+} node_pool[MAXS], *node_it, *root, *last;
+
+Node *new_node(int len) {
+  node_it->len = len;
+  return node_it++;
+}
+void sam_init() {
+  node_it = node_pool;
+  last = root = new_node(0);
+}
+void sam_extend(int c, int val) {
+  Node *p = last, *np = new_node(p->len + 1);
+  for (last = np; p && !p->ch[c]; p = p->link) p->ch[c] = np;
+  if (!p) {
+    np->link = root;
+  } else {
+    Node *q = p->ch[c];
+    if (q->len == p->len + 1) {
+      np->link = q;
+    } else {
+      Node *nq = new_node(p->len + 1);
+      memcpy(nq->ch, q->ch, sizeof(q->ch));
+      nq->link = q->link;
+      q->link = np->link = nq;
+      for (; p && p->ch[c] == q; p = p->link) p->ch[c] = nq;
+    }
+  }
+}
+
+\end{lstlisting}
+\subsection{ACam}
+\begin{lstlisting}
+int ch[MAX_NODE][26], fail[MAX_NODE], dep[MAX_NODE], node_c;
+
+int add_char(int u, int id) {
+  if (ch[u][id] < 0) ch[u][id] = node_c++;
+  return ch[u][id];
+}
+void build_acam() {
+  queue<int> que;
+  FOR(i, 0, 26)
+    if (~ch[0][i]) {
+      que.push(ch[0][i]);
+      fail[ch[0][i]] = 0;
+      dep[ch[0][i]] = 1;
+    } else {
+      ch[0][i] = 0;
+    }
+  while (!que.empty()) {
+    int u = que.front();
+    que.pop();
+    FOR(i, 0, 26)
+      if (~ch[u][i]) {
+        que.push(ch[u][i]);
+        fail[ch[u][i]] = ch[fail[u]][i];
+        dep[ch[u][i]] = dep[u] + 1;
+      } else {
+        ch[u][i] = ch[fail[u]][i];
+      }
+  }
+  FOR(i, 1, node_c) adj[fail[i]].push_back(i);
 }
 
 \end{lstlisting}
