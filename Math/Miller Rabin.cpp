@@ -24,7 +24,7 @@ inline bool check(const ll &x, const ll &p) {
 inline bool Miller_Rabin(const ll &x) {
   if (x < 2) return false;
   static const int p[12] = {2, 3, 5, 7, 11, 13, 17, 19, 61, 2333, 4567, 24251};
-  for (register int i = 0; i < 12; ++i) {
+  for (int i = 0; i < 12; ++i) {
     if (!(x ^ p[i])) return true;
     if (!check(x, p[i])) return false;
   }

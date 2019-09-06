@@ -3,7 +3,7 @@ int tree[MAXN * 2], pre;
 void init(int n, int *a) {
   memset(tree, 0, sizeof(tree));
   for (pre = 1; pre <= n; pre <<= 1) {}
-  for (int i = 1; i <= n; ++i) tree[i + pre] = i;
+  for (int i = 1; i <= n; ++i) tree[i + pre] = a[i];
   for (int i = pre; i; --i) tree[i] = max(tree[i << 1], tree[i << 1 | 1]);
 }
 
