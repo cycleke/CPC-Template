@@ -1,3 +1,12 @@
+// e = mu x 1
+// d = 1 x 1
+// sigma = d x 1
+// phi = mu x id
+// id = phi x 1
+// id^2 = (id * phi) x id
+
+// S = sum(f)
+// sum(fxg) = sum(g(i)S(n/i))
 map<int, int> mp_mu;
 
 int S_mu(int n) {
