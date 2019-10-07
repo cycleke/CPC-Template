@@ -181,6 +181,40 @@ int exctr(int n, int *a, int *m) {
 }
 
 \end{lstlisting}
+\subsection{burnside}
+\begin{lstlisting}
+// |X/G|={1 \over {|G|}} \sum_{g \in G}|X^g|
+// Gym - 101873B
+// m边形，每边是n*n的矩形，用c种颜色染色，可进行水平旋转，问不同多边形个数。
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MOD = 1e9 + 7;
+
+int mod_pow(int a, int b) {
+  int r = 1;
+  for (; b; b >>= 1, a = 1LL * a * a % MOD)
+    if (b & 1) r = 1LL * a * r % MOD;
+  return r;
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  int n, m, c;
+  cin >> n >> m >> c;
+
+  int ans = 0;
+  for (int i = 1; i <= m; ++i)
+    ans = (ans + mod_pow(c, n * n * __gcd(i, m))) % MOD;
+  ans = 1LL * ans * mod_pow(m, MOD - 2) % MOD;
+  cout << ans << '\n';
+  return 0;
+}
+
+
+\end{lstlisting}
 \subsection{exgcd}
 \begin{lstlisting}
 int exgcd(int a, int b, int &x, int &y) {
@@ -1357,6 +1391,77 @@ int KM() {
 }
 
 \end{lstlisting}
+\subsection{sap}
+\begin{lstlisting}
+struct MF {
+  struct Edge {
+    int to, cap, flow;
+  } edges[MAXM * 4];
+
+  vector<int> adj[MAXN];
+  int n, edges_c, dep[MAXN], depc[MAXN], s, t, last[MAXN];
+
+  void init(int _n) {
+    n = _n;
+    for (int i = 1; i <= n; ++i) adj[i].clear();
+    edges_c = 0;
+  }
+
+  void add_edge(int v, int u, int cap) {
+    edges[edges_c] = {v, cap, 0};
+    adj[u].push_back(edges_c++);
+    edges[edges_c] = {u, 0, 0};
+    adj[v].push_back(edges_c++);
+  }
+
+  int dfs(int u, int flow) {
+    if (u == t || !flow) return flow;
+    int v, e, temp, res = 0;
+    for (int &i = last[u]; i < (int)adj[u].size(); ++i) {
+      e = adj[u][i];
+      v = edges[e].to;
+      if (edges[e].cap == edges[e].flow) continue;
+      if (dep[v] != dep[u] - 1) continue;
+      temp = dfs(v, min(flow, edges[e].cap - edges[e].flow));
+      edges[e].flow += temp, edges[e ^ 1].flow -= temp;
+      res += temp, flow -= temp;
+      if (!flow) return res;
+      if (!dep[s]) return res;
+    }
+    last[u] = 0;
+    if (!(--depc[dep[u]])) dep[s] = n + 1;
+    ++depc[++dep[u]];
+    return res;
+  }
+  int max_flow(int s, int t) {
+    this->s = s, this->t = t;
+
+    static queue<int> que;
+    memset(dep + 1, 0, sizeof(int) * n);
+    memset(depc + 1, 0, sizeof(int) * n);
+    memset(last + 1, 0, sizeof(int) * n);
+    while (!que.empty()) que.pop();
+    dep[t] = 1, que.push(t);
+
+    while (!que.empty()) {
+      int u = que.front();
+      que.pop();
+      ++depc[dep[u]];
+      for (int i = 0, v; i < (int)adj[u].size(); ++i) {
+        v = edges[adj[u][i]].to;
+        if (dep[v]) continue;
+        dep[v] = dep[u] + 1;
+        que.push(v);
+      }
+    }
+
+    int res = 0;
+    while (dep[s] <= n) res += dfs(s, INT_MAX);
+    return res;
+  }
+};
+
+\end{lstlisting}
 
 \section{Computational Geometry}
 
@@ -1468,8 +1573,6 @@ set tabstop=2
 set softtabstop=2
 set shiftwidth=2
 set expandtab 
-set anti enc=utf-8
-set guifont=GoMono\ Nerd\ Font\ 13
 
 :imap jk <Esc>
 
@@ -1491,25 +1594,6 @@ map <F9> : call DeBug() <CR>
 func DeBug()
 	exec "!gdb %<"
 endfunc
-
-set guioptions-=T
-set guioptions-=m
-set guioptions-=r
-set guioptions-=egrL
-set cursorline
-:nn <M-1> 1gt
-:nn <M-2> 2gt
-:nn <M-3> 3gt
-:nn <M-4> 4gt
-:nn <M-5> 5gt
-:nn <M-6> 6gt
-:nn <M-7> 7gt
-:nn <M-8> 8gt
-:nn <M-9> 9gt
-:nn <M-t> :tabnew<CR>
-:nn <M-w> :close<CR>
-:nn <C-Tab> :tabnext<CR>
-
 
 \end{lstlisting}
 \subsection{FastIO}
@@ -1605,63 +1689,6 @@ struct FastIO {
 } // namespace FastIO
 
 \end{lstlisting}
-\subsection{head}
-\begin{lstlisting}
-#include <bits/stdc++.h>
-using namespace std;
-
-typedef long long ll;
-typedef unsigned long long ull;
-typedef long double ld;
-typedef pair<int, int> pii;
-typedef tuple<int, int, int> tiii;
-typedef vector<int> vi;
-typedef vector<vi> vvi;
-typedef vector<long long> vll;
-typedef vector<pii> vpii;
-
-#define SZ(a) int((a).size())
-#define ALL(a) (a).begin(), (a).end()
-#define EXIST(s, x) ((s).find(x) != (s).end())
-#define A_EXIST(a, x) (find(ALL(a), x) != (a).end())
-#define ZERO(a) memset((a), 0, sizeof(a))
-
-#define FOR(i, a, b) for (int i = int(a); i < int(b); ++i)
-#define REP(i, a, b) for (int i = int(b) - 1; i >= a; --i)
-#define FOR2(i, a, b, j, c, d) FOR(i, a, b) FOR(j, c, d)
-#define REP2(i, a, b, j, c, d) REP(i, a, b) REP(j, c, d)
-#define EACH(i, s) for (auto i = (s).begin(); i != (s).end(); ++i)
-#define debug(...) fprintf(stderr, __VA_ARGS__)
-#define dbg(x)                                                                 \
-  cerr << "debug: " << __FUNCTION__ << "() @ " << __TIMESTAMP__ << "\n"        \
-       << __FILE__ << " L" << __LINE__ << "\n"                                 \
-       << #x " = " << (x) << endl
-
-const int INF = 0x3ffffff;
-const ll LL_INF = 0x3fffffffffffffffll;
-const int MOD = 1e9 + 7;
-const ll HASH_KEY = 6151;
-const ll HASH_MOD = 1610612741;
-
-// mt19937 rdm(chrono::steady_clock::now().time_since_epoch().count());
-// uniform_int_distribution<int> u_int(begin, end);
-// uniform_real_distribution<double> u_read(begin, end);
-/* -- HEAD END -- */
-
-void solve() {}
-
-int main(int argc, char *argv[]) {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout << fixed << setprecision(10);
-
-  int o_o;
-  for (o_o = 1; o_o; --o_o) solve();
-
-  return 0;
-}
-
-\end{lstlisting}
 \subsection{myalloc}
 \begin{lstlisting}
 // useage: vector<int, myalloc<int>> L;
@@ -1687,11 +1714,11 @@ template <typename T> struct myalloc : allocator<T> {
 #/usr/bin/bash
 
 while true; do
-  python gen_data.py
-  ./E < input.txt > output.txt
- ./E_r <input.txt > r.txt
-  if diff output.txt r.txt; then
-    printf AC
+  python gen.py > in.txt
+  time ./my < in.txt > out.txt
+  time ./std < in.txt > ans.txt
+  if diff out.txt ans.txt; then
+    echo AC
   else
     echo WA
     exit 0

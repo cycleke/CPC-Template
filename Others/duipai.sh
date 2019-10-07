@@ -1,11 +1,11 @@
 #/usr/bin/bash
 
 while true; do
-  python gen_data.py
-  ./E < input.txt > output.txt
- ./E_r <input.txt > r.txt
-  if diff output.txt r.txt; then
-    printf AC
+  python gen.py > in.txt
+  time ./my < in.txt > out.txt
+  time ./std < in.txt > ans.txt
+  if diff out.txt ans.txt; then
+    echo AC
   else
     echo WA
     exit 0
