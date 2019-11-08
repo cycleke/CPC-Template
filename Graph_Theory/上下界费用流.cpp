@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN = 53;
+const int MAX_NODE = 113;
+const int MAX_EDGE = 1e5 + 5;
+const int INF = 0x3f3f3f3f;
+
+int n, s, t, ss, tt, tote;
+int R[MAXN], C[MAXN], board[MAXN][MAXN];
+
+struct Edge {
+  int to, cap, flow, cost;
+} edges[MAX_EDGE];
+vector<int> adj[MAX_NODE];
+
+int from[MAX_NODE], in[MAX_NODE];
+void add_edge(int from, int to, int l, int r, int cost) {
+  in[to] += l, in[from] -= l;
+  edges[tote] = (Edge){to, r - l, 0, cost};
+  adj[from].push_back(tote++);
+  edges[tote] = (Edge){from, 0, 0, -cost};
+  adj[to].push_back(tote++);
+}
+
+bool spfa(int s, int t) {
+  static queue<int> q;
+  static bool inq[MAX_NODE];
+  static int dist[MAX_NODE];
+  memset(inq + 1, 0, sizeof(bool) * tt);
+  memset(dist + 1, 0x3f, sizeof(int) * tt);
+  memset(from + 1, -1, sizeof(int) * tt);
+  dist[0] = 0, from[0] = -1;
+  q.push(0);
+  while (!q.empty()) {
+    int u = q.front();
+    q.pop();
+    inq[u] = false;
+    for (int e : adj[u]) {
+      if (edges[e].cap == edges[e].flow) continue;
+      int v = edges[e].to, d = dist[u] + edges[e].cost;
+      if (d >= dist[v]) continue;
+      dist[v] = d;
+      from[v] = e;
+      if (!inq[v]) {
+        q.push(v);
+        inq[v] = true;
+      }
+    }
+  }
+  return dist[t] < INF;
+}
+
+pair<int, int> min_cost_max_flow(int s, int t) {
+  int flow = 0, cost = 0;
+  while (spfa(s, t)) {
+    int mi = INF;
+    for (int it = from[t]; ~it; it = from[edges[it ^ 1].to])
+      mi = min(mi, edges[it].cap - edges[it].flow);
+    flow += mi;
+    for (int it = from[t]; ~it; it = from[edges[it ^ 1].to]) {
+      edges[it].flow += mi, edges[it ^ 1].flow -= mi;
+      cost += mi * edges[it].cost;
+    }
+  }
+  return make_pair(flow, cost);
+}
+
+void solve() {
+  tote = 0;
+  s = 2 * n + 1, t = 2 * n + 2, ss = 0, tt = 2 * n + 3;
+  for (int i = 0; i <= tt; ++i) adj[i].clear(), in[i] = 0;
+
+  memset(R + 1, 0, sizeof(int) * n);
+  memset(C + 1, 0, sizeof(int) * n);
+
+  for (int i = 1; i <= n; ++i)
+    for (int j = 1; j <= n; ++j) {
+      cin >> board[i][j];
+      R[i] += board[i][j];
+      C[j] += board[i][j];
+    }
+
+  for (int i = 1; i <= n; ++i) {
+    add_edge(s, i, R[i], R[i], 0);
+    add_edge(s, i + n, C[i], C[i], 0);
+  }
+
+  for (int i = 1, l, r; i <= n; ++i) {
+    cin >> l >> r;
+    add_edge(i, t, l, r, 0);
+  }
+  for (int i = 1, l, r; i <= n; ++i) {
+    cin >> l >> r;
+    add_edge(i + n, t, l, r, 0);
+  }
+
+  for (int step = n * n / 2, x1, y1, x2, y2; step; --step) {
+    cin >> x1 >> y1 >> x2 >> y2;
+    if (board[x1][y1] == board[x2][y2]) continue;
+    if (board[x2][y2]) swap(x1, x2), swap(y1, y2);
+    if (x1 == x2)
+      add_edge(y1 + n, y2 + n, 0, 1, 1);
+    else
+      add_edge(x1, x2, 0, 1, 1);
+  }
+  add_edge(t, s, 0, INF, 0);
+  int sum = 0;
+  for (int i = 1; i < tt; ++i) {
+    if (in[i] > 0) {
+      sum += in[i];
+      add_edge(ss, i, 0, in[i], 0);
+    } else if (in[i] < 0) {
+      add_edge(i, tt, 0, -in[i], 0);
+    }
+  }
+
+  pair<int, int> ans = min_cost_max_flow(ss, tt);
+  if (sum != ans.first) {
+    cout << "-1\n";
+  } else {
+    cout << ans.second << '\n';
+  }
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  while (cin >> n) solve();
+  return 0;
+}
