@@ -7,9 +7,7 @@ struct PT {
     l[1] = -1;
     fail[0] = fail[1] = 1;
     for (int i = 0; i < 26; ++i) {
-      for (int j = 0; j < nc; ++j) {
-        ch[i][j] = 0;
-      }
+      for (int j = 0; j < nc; ++j) { ch[i][j] = 0; }
     }
     for (int i = 2; i < nc; ++i) {
       l[i] = 0;
@@ -25,15 +23,11 @@ struct PT {
   int insert(char c) {
     int id = c - 'a';
     s[++n] = c;
-    while (s[n - l[lst] - 1] != s[n]) {
-      lst = fail[lst];
-    }
+    while (s[n - l[lst] - 1] != s[n]) { lst = fail[lst]; }
     if (ch[id][lst] == 0) {
       l[nc] = l[lst] + 2;
       int f = fail[lst];
-      while (s[n - l[f] - 1] != s[n]) {
-        f = fail[f];
-      }
+      while (s[n - l[f] - 1] != s[n]) { f = fail[f]; }
       fail[nc] = ch[id][f];
       dep[nc] = dep[fail[nc]] + 1;
       ch[id][lst] = nc;
@@ -54,9 +48,7 @@ int main() {
   cin >> S;
   int n = strlen(S);
   pt.init();
-  for (int i = 0; i < n; ++i) {
-    len[i] = pt.l[pt.insert(S[i])];
-  }
+  for (int i = 0; i < n; ++i) { len[i] = pt.l[pt.insert(S[i])]; }
   pt.init();
   int ans = 0;
   for (int i = n - 1; i; --i) {

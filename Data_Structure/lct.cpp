@@ -1,0 +1,63 @@
+struct LCT {
+  struct node {
+    int val, add;
+    node *fa, *ch[2];
+    void modify(const int &x) {
+      val += x;
+      add += x;
+    }
+  } node_mset[MaxS], *cnode, *null;
+  LCT() {
+    cnode = node_mset;
+    null = cnode++;
+    *null = (node){0, 0, null, {null, null}};
+  }
+  inline node *newnode() {
+    *cnode = (node){0, 0, null, {null, null}};
+    return cnode++;
+  }
+  inline bool isrt(node *u) const {
+    return (u->fa->ch[0] != u) && (u->fa->ch[1] != u);
+  }
+  inline bool which(node *u) const { return u->fa->ch[1] == u; }
+  void push_down(node *u) {
+    if (!isrt(u)) push_down(u->fa);
+    if (u->add) {
+      u->ch[0]->modify(u->add);
+      u->ch[1]->modify(u->add);
+      u->add = 0;
+    }
+  }
+  inline void rotate(node *u) {
+    node *f = u->fa;
+    int d = which(u);
+    f->ch[d] = u->ch[d ^ 1];
+    f->ch[d]->fa = f;
+    u->ch[d ^ 1] = f;
+    u->fa = f->fa;
+    if (!isrt(f)) f->fa->ch[which(f)] = u;
+    f->fa = u;
+  }
+  inline void splay(node *u) {
+    push_down(u);
+    for (node *f; !isrt(u); rotate(u))
+      if (!isrt(f = u->fa)) rotate(which(u) == which(f) ? f : u);
+  }
+  inline void access(node *x) {
+    for (node *y = null; x != null; x = x->fa) {
+      splay(x);
+      x->ch[1] = y;
+      y = x;
+    }
+  }
+  inline void cut(node *u) {
+    access(u);
+    splay(u);
+    u->ch[0]->fa = null;
+    u->ch[0] = null;
+  }
+  inline void link(node *u, node *v) {
+    cut(u);
+    u->fa = v;
+  }
+} tree;

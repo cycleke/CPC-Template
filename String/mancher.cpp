@@ -11,11 +11,7 @@ void mancher(char *s, int n) {
     } else {
       p[i] = 1;
     }
-    while (str[i + p[i]] == str[i - p[i]]) {
-      ++p[i];
-    }
-    if (i + p[i] > j + p[j]) {
-      j = i;
-    }
+    while (str[i + p[i]] == str[i - p[i]]) { ++p[i]; }
+    if (i + p[i] > j + p[j]) { j = i; }
   }
 }

@@ -171,11 +171,7 @@ struct LinearRecurrence {
       : init(s), trans(c), mod(mod), m(s.size()) {}
 
   LinearRecurrence(const vec &s, int64 mod, bool is_prime = true) : mod(mod) {
-    vec A;
-    if (is_prime)
-      A = BerlekampMassey(s, mod);
-    else
-      A = ReedsSloane(s, mod);
+    vec A = is_prime ? BerlekampMassey(s, mod) : ReedsSloane(s, mod);
     if (A.empty()) A = {0};
     m = A.size() - 1;
     trans.resize(m);

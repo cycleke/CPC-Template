@@ -6,7 +6,7 @@ int add_char(int u, int id) {
 }
 void build_acam() {
   queue<int> que;
-  FOR(i, 0, 26)
+  for (int i = 0; i < 26; ++i)
     if (~ch[0][i]) {
       que.push(ch[0][i]);
       fail[ch[0][i]] = 0;
@@ -17,7 +17,7 @@ void build_acam() {
   while (!que.empty()) {
     int u = que.front();
     que.pop();
-    FOR(i, 0, 26)
+    for (int i = 0; i < 26; ++i)
       if (~ch[u][i]) {
         que.push(ch[u][i]);
         fail[ch[u][i]] = ch[fail[u]][i];
@@ -26,5 +26,5 @@ void build_acam() {
         ch[u][i] = ch[fail[u]][i];
       }
   }
-  FOR(i, 1, node_c) adj[fail[i]].push_back(i);
+  for (int i = 1; i < node_c; ++i) adj[fail[i]].push_back(i);
 }

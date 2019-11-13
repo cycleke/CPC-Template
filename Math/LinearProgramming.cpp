@@ -4,6 +4,113 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+const int MAXN = int(3e3);
+const int MAXM = int(3e3);
+const double INF = 1e20, EPS = 1e-9;
+
+int n, m;
+double a[MAXM][MAXN], v;
+
+void pivot(int l, int e) {
+  int i, j;
+  a[l][e] = 1 / a[l][e];
+  for (j = 0; j <= n; ++j)
+    if (j != e) a[l][j] *= a[l][e];
+  for (i = 1; i <= m; ++i)
+    if (i != l && fabs(a[i][e]) > EPS) {
+      for (j = 0; j <= n; ++j)
+        if (j != e) a[i][j] -= a[i][e] * a[l][j];
+      a[i][e] = -a[i][e] * a[l][e];
+    }
+  v += a[0][e] * a[l][0];
+  for (j = 1; j <= n; ++j)
+    if (j != e) a[0][j] -= a[0][e] * a[l][j];
+  a[0][e] = -a[0][e] * a[l][e];
+}
+
+double simplex() {
+  int e, l, i;
+  double mn;
+  v = 0;
+  while (true) {
+    for (e = 1; e <= n; ++e)
+      if (a[0][e] > EPS) break;
+    if (e > n) return v;
+    for (i = 1, mn = INF; i <= m; ++i)
+      if (a[i][e] > EPS && mn > a[i][0] / a[i][e])
+        mn = a[i][0] / a[i][e], l = i;
+    if (mn == INF) return INF;
+    pivot(l, e);
+  }
+}
+
+void solve() {
+  static int n, m, g[10];
+  static vector<int> con[10], able;
+
+  scanf("%d %d", &n, &m);
+  for (int i = 0; i < n; ++i) {
+    scanf("%d", g + i);
+    con[i].clear();
+  }
+
+  if (n == 1) {
+    printf("%.10f\n", m >= g[0] ? 1. : 0.);
+    return;
+  }
+
+  able.clear();
+  for (int s = 0, S = 1 << n; s < S; ++s) {
+    int sum = 0;
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) sum += g[i];
+    if (sum > m) continue;
+    able.push_back(s);
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) con[i].push_back(able.size());
+  }
+  ::n = able.size();
+  ::m = 0;
+  static random_device rd;
+  mt19937 gen(rd());
+  shuffle(able.begin(), able.end(), gen);
+  for (int step = 0; step < n; ++step) {
+    int f = ++::m;
+    for (int i = 0; i <= ::n; ++i) a[f][i] = 0;
+    for (int x : con[step]) ++a[f][x];
+    if (step + 1 < n) {
+      for (int x : con[step + 1]) --a[f][x];
+    } else {
+      for (int x : con[0]) --a[f][x];
+    }
+  }
+
+  ++::m;
+  a[::m][0] = 1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = 1;
+
+  ++::m;
+  a[::m][0] = -1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = -1;
+
+  for (int i = 0; i <= ::n; ++i) a[0][i] = 0;
+  for (int x : con[0]) ++a[0][x];
+  printf("%.10f\n", simplex());
+}
+
+int main() {
+  int o_o, case_number = 1;
+  for (scanf("%d", &o_o); case_number <= o_o; ++case_number) {
+    printf("Case #%d: ", case_number);
+    solve();
+  }
+  return 0;
+}
+
+// 备份
+#include <bits/stdc++.h>
+using namespace std;
+
 typedef long double db;
 const int MAXN = 3000;
 const int MAXM = 3000;
