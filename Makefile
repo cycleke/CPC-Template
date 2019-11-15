@@ -1,5 +1,5 @@
 empty:
-	@echo Making beamer ...
+	@echo Making Article ...
 	xelatex -shell-escape main.tex
 	-bibtex main
 	xelatex -shell-escape main.tex

@@ -63,21 +63,13 @@ const int MAXN = 1e7 + 5;
 bool vis[MAXN];
 int prime[MAXN / 10], prime_cnt;
 int fac[MAXN], e[MAXN], d[MAXN], mu[MAXN], phi[MAXN];
-
+// e 质因子最高次数， d 因数个数
 void sieve() {
-  fac[1] = 1;
-  e[1] = 0;
-  d[1] = 1;
-  mu[1] = 1;
-  phi[1] = 1;
+  fac[1] = 1, e[1] = 0, d[1] = 1, mu[1] = 1, phi[1] = 1;
   for (int i = 2; i < MAXN; ++i) {
     if (!vis[i]) {
       prime[prime_cnt++] = i;
-      fac[i] = i;
-      e[i] = 1;
-      d[i] = 2;
-      mu[i] = -1;
-      phi[i] = i - 1;
+      fac[i] = i, e[i] = 1, d[i] = 2, mu[i] = -1, phi[i] = i - 1;
     }
     for (int j = 0; j < prime_cnt; ++j) {
       int t = prime[j] * i;
@@ -212,7 +204,6 @@ int main() {
   cout << ans << '\n';
   return 0;
 }
-
 
 \end{lstlisting}
 \subsection{exgcd}
@@ -498,11 +489,7 @@ struct LinearRecurrence {
       : init(s), trans(c), mod(mod), m(s.size()) {}
 
   LinearRecurrence(const vec &s, int64 mod, bool is_prime = true) : mod(mod) {
-    vec A;
-    if (is_prime)
-      A = BerlekampMassey(s, mod);
-    else
-      A = ReedsSloane(s, mod);
+    vec A = is_prime ? BerlekampMassey(s, mod) : ReedsSloane(s, mod);
     if (A.empty()) A = {0};
     m = A.size() - 1;
     trans.resize(m);
@@ -749,6 +736,113 @@ signed main() {
 // CCPC Final 2017 F
 // sum(P(s)) = 1, P(s) >= 0
 // max and equal (sum(P(s)) | i in s)
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN = int(3e3);
+const int MAXM = int(3e3);
+const double INF = 1e20, EPS = 1e-9;
+
+int n, m;
+double a[MAXM][MAXN], v;
+
+void pivot(int l, int e) {
+  int i, j;
+  a[l][e] = 1 / a[l][e];
+  for (j = 0; j <= n; ++j)
+    if (j != e) a[l][j] *= a[l][e];
+  for (i = 1; i <= m; ++i)
+    if (i != l && fabs(a[i][e]) > EPS) {
+      for (j = 0; j <= n; ++j)
+        if (j != e) a[i][j] -= a[i][e] * a[l][j];
+      a[i][e] = -a[i][e] * a[l][e];
+    }
+  v += a[0][e] * a[l][0];
+  for (j = 1; j <= n; ++j)
+    if (j != e) a[0][j] -= a[0][e] * a[l][j];
+  a[0][e] = -a[0][e] * a[l][e];
+}
+
+double simplex() {
+  int e, l, i;
+  double mn;
+  v = 0;
+  while (true) {
+    for (e = 1; e <= n; ++e)
+      if (a[0][e] > EPS) break;
+    if (e > n) return v;
+    for (i = 1, mn = INF; i <= m; ++i)
+      if (a[i][e] > EPS && mn > a[i][0] / a[i][e])
+        mn = a[i][0] / a[i][e], l = i;
+    if (mn == INF) return INF;
+    pivot(l, e);
+  }
+}
+
+void solve() {
+  static int n, m, g[10];
+  static vector<int> con[10], able;
+
+  scanf("%d %d", &n, &m);
+  for (int i = 0; i < n; ++i) {
+    scanf("%d", g + i);
+    con[i].clear();
+  }
+
+  if (n == 1) {
+    printf("%.10f\n", m >= g[0] ? 1. : 0.);
+    return;
+  }
+
+  able.clear();
+  for (int s = 0, S = 1 << n; s < S; ++s) {
+    int sum = 0;
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) sum += g[i];
+    if (sum > m) continue;
+    able.push_back(s);
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) con[i].push_back(able.size());
+  }
+  ::n = able.size();
+  ::m = 0;
+  static random_device rd;
+  mt19937 gen(rd());
+  shuffle(able.begin(), able.end(), gen);
+  for (int step = 0; step < n; ++step) {
+    int f = ++::m;
+    for (int i = 0; i <= ::n; ++i) a[f][i] = 0;
+    for (int x : con[step]) ++a[f][x];
+    if (step + 1 < n) {
+      for (int x : con[step + 1]) --a[f][x];
+    } else {
+      for (int x : con[0]) --a[f][x];
+    }
+  }
+
+  ++::m;
+  a[::m][0] = 1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = 1;
+
+  ++::m;
+  a[::m][0] = -1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = -1;
+
+  for (int i = 0; i <= ::n; ++i) a[0][i] = 0;
+  for (int x : con[0]) ++a[0][x];
+  printf("%.10f\n", simplex());
+}
+
+int main() {
+  int o_o, case_number = 1;
+  for (scanf("%d", &o_o); case_number <= o_o; ++case_number) {
+    printf("Case #%d: ", case_number);
+    solve();
+  }
+  return 0;
+}
+
+// 备份
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -1022,131 +1116,71 @@ int main() {
 
 \section{Data Structure}
 
-\subsection{kd_tree}
+\subsection{lct}
 \begin{lstlisting}
-#include <bits/stdc++.h>
-using namespace std;
-
-const int MAXN = 2e5 + 5;
-typedef long long ll;
-
-namespace KD_Tree {
-
-  const int DIM = 2;
-
-  inline ll sqr(int x) { return 1LL * x * x; }
-
-  struct Point {
-    int x[DIM], id, c;
-
-    ll dist2(const Point &b) const {
-      return sqr(x[0] - b.x[0]) + sqr(x[1] - b.x[1]);
+struct LCT {
+  struct node {
+    int val, add;
+    node *fa, *ch[2];
+    void modify(const int &x) {
+      val += x;
+      add += x;
     }
-  };
-  struct QNode {
-    Point p;
-    ll dis2;
-
-    QNode() {}
-    QNode(Point _p, ll _dis2) : p(_p), dis2(_dis2) {}
-
-    bool operator < (const QNode &b) const {
-      return dis2 < b.dis2 || (dis2 == b.dis2 && p.id < b.p.id);
-    }
-  }ans;
-  struct cmpx {
-    int div;
-    cmpx(int _div) : div(_div) {}
-    bool operator ()(const Point &a, const Point &b) {
-      for (int i = 0; i < DIM; ++i)
-        if (a.x[(i + div) % DIM] != b.x[(i + div) % DIM])
-          return a.x[(i + div) % DIM] < b.x[(i + div) % DIM];
-      return true;
-    }
-  };
-
-  bool cmp(const Point &a, const Point &b, int div) {
-    cmpx cp = cmpx(div);
-    return cp(a, b);
+  } node_mset[MaxS], *cnode, *null;
+  LCT() {
+    cnode = node_mset;
+    null = cnode++;
+    *null = (node){0, 0, null, {null, null}};
   }
-
-  struct Node {
-    Point e;
-    Node *lc, *rc;
-    int div;
-  }node_pool[MAXN], *tail, *root;
-  void init() {
-    tail = node_pool;
+  inline node *newnode() {
+    *cnode = (node){0, 0, null, {null, null}};
+    return cnode++;
   }
-  Node *build(Point *a, int l, int r, int div) {
-    if (l >= r) return nullptr;
-    Node *p = tail++;
-    p->div = div;
-    int mid = (l + r) >> 1;
-    nth_element(a + l, a + mid, a + r, cmpx(div));
-    p->e = a[mid];
-    p->lc = build(a, l, mid, div ^ 1);
-    p->rc = build(a, mid + 1, r, div ^ 1);
-    return p;
+  inline bool isrt(node *u) const {
+    return (u->fa->ch[0] != u) && (u->fa->ch[1] != u);
   }
-  void search(Point p, Node *x, int div) {
-    if (!x) return;
-    if (cmp(p, x->e, div)) {
-      search(p, x->lc, div ^ 1);
-      if (ans.dis2 == -1) {
-        if (x->e.c <= p.c) ans = QNode(x->e, p.dist2(x->e));
-        search(p, x->rc, div ^ 1);
-      } else {
-        QNode temp(x->e, p.dist2(x->e));
-        if (x->e.c <= p.c && temp < ans) ans = temp;
-        if (sqr(x->e.x[div] - p.x[div]) <= ans.dis2)
-          search(p, x->rc, div ^ 1);
-      }
-    } else {
-      search(p, x->rc, div ^ 1);
-      if (ans.dis2 == -1) {
-        if (x->e.c <= p.c) ans = QNode(x->e, p.dist2(x->e));
-        search(p, x->lc, div ^ 1);
-      } else {
-        QNode temp(x->e, p.dist2(x->e));
-        if (x->e.c <= p.c && temp < ans) ans = temp;
-        if (sqr(x->e.x[div] - p.x[div]) <= ans.dis2)
-          search(p, x->lc, div ^ 1);
-      }
+  inline bool which(node *u) const { return u->fa->ch[1] == u; }
+  void push_down(node *u) {
+    if (!isrt(u)) push_down(u->fa);
+    if (u->add) {
+      u->ch[0]->modify(u->add);
+      u->ch[1]->modify(u->add);
+      u->add = 0;
     }
   }
-  void search(Point p) {
-    ans.dis2 = -1;
-    search(p, root, 0);
+  inline void rotate(node *u) {
+    node *f = u->fa;
+    int d = which(u);
+    f->ch[d] = u->ch[d ^ 1];
+    f->ch[d]->fa = f;
+    u->ch[d ^ 1] = f;
+    u->fa = f->fa;
+    if (!isrt(f)) f->fa->ch[which(f)] = u;
+    f->fa = u;
   }
-} // namespace KD_Tree
-
-void solve() {
-  static KD_Tree::Point p[MAXN];
-  int n, m;
-  cin >> n >> m;
-  for (int i = 0; i < n; ++i) {
-    p[i].id = i;
-    cin >> p[i].x[0] >> p[i].x[1] >> p[i].c;
+  inline void splay(node *u) {
+    push_down(u);
+    for (node *f; !isrt(u); rotate(u))
+      if (!isrt(f = u->fa)) rotate(which(u) == which(f) ? f : u);
   }
-  KD_Tree::init();
-  KD_Tree::root = KD_Tree::build(p, 0, n, 0);
-
-  for (KD_Tree::Point q; m; --m) {
-    cin >> q.x[0] >> q.x[1] >> q.c;
-    KD_Tree::search(q);
-    cout << KD_Tree::ans.p.x[0] << ' ' << KD_Tree::ans.p.x[1] << ' ' << KD_Tree::ans.p.c << '\n';
+  inline void access(node *x) {
+    for (node *y = null; x != null; x = x->fa) {
+      splay(x);
+      x->ch[1] = y;
+      y = x;
+    }
   }
-}
-int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-
-  int o_o;
-  for (cin >> o_o; o_o; --o_o) solve();
-
-  return 0;
-}
+  inline void cut(node *u) {
+    access(u);
+    splay(u);
+    u->ch[0]->fa = null;
+    u->ch[0] = null;
+  }
+  inline void link(node *u, node *v) {
+    cut(u);
+    u->fa = v;
+  }
+} tree;
 
 \end{lstlisting}
 \subsection{zkw}
@@ -1349,6 +1383,220 @@ int main() {
 }
 
 \end{lstlisting}
+\subsection{kdtree}
+\begin{lstlisting}
+// 寻找近点
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN = 2e5 + 5;
+typedef long long ll;
+
+namespace KD_Tree {
+
+const int DIM = 2;
+
+inline ll sqr(int x) { return 1LL * x * x; }
+
+struct Point {
+  int x[DIM], id, c;
+
+  ll dist2(const Point &b) const {
+    return sqr(x[0] - b.x[0]) + sqr(x[1] - b.x[1]);
+  }
+};
+struct QNode {
+  Point p;
+  ll dis2;
+
+  QNode() {}
+  QNode(Point _p, ll _dis2) : p(_p), dis2(_dis2) {}
+
+  bool operator<(const QNode &b) const {
+    return dis2 < b.dis2 || (dis2 == b.dis2 && p.id < b.p.id);
+  }
+} ans;
+struct cmpx {
+  int div;
+  cmpx(int _div) : div(_div) {}
+  bool operator()(const Point &a, const Point &b) {
+    for (int i = 0; i < DIM; ++i)
+      if (a.x[(i + div) % DIM] != b.x[(i + div) % DIM])
+        return a.x[(i + div) % DIM] < b.x[(i + div) % DIM];
+    return true;
+  }
+};
+
+bool cmp(const Point &a, const Point &b, int div) {
+  cmpx cp = cmpx(div);
+  return cp(a, b);
+}
+
+struct Node {
+  Point e;
+  Node *lc, *rc;
+  int div;
+} node_pool[MAXN], *tail, *root;
+void init() { tail = node_pool; }
+Node *build(Point *a, int l, int r, int div) {
+  if (l >= r) return nullptr;
+  Node *p = tail++;
+  p->div = div;
+  int mid = (l + r) >> 1;
+  nth_element(a + l, a + mid, a + r, cmpx(div));
+  p->e = a[mid];
+  p->lc = build(a, l, mid, div ^ 1);
+  p->rc = build(a, mid + 1, r, div ^ 1);
+  return p;
+}
+void search(Point p, Node *x, int div) {
+  if (!x) return;
+  if (cmp(p, x->e, div)) {
+    search(p, x->lc, div ^ 1);
+    if (ans.dis2 == -1) {
+      if (x->e.c <= p.c) ans = QNode(x->e, p.dist2(x->e));
+      search(p, x->rc, div ^ 1);
+    } else {
+      QNode temp(x->e, p.dist2(x->e));
+      if (x->e.c <= p.c && temp < ans) ans = temp;
+      if (sqr(x->e.x[div] - p.x[div]) <= ans.dis2) search(p, x->rc, div ^ 1);
+    }
+  } else {
+    search(p, x->rc, div ^ 1);
+    if (ans.dis2 == -1) {
+      if (x->e.c <= p.c) ans = QNode(x->e, p.dist2(x->e));
+      search(p, x->lc, div ^ 1);
+    } else {
+      QNode temp(x->e, p.dist2(x->e));
+      if (x->e.c <= p.c && temp < ans) ans = temp;
+      if (sqr(x->e.x[div] - p.x[div]) <= ans.dis2) search(p, x->lc, div ^ 1);
+    }
+  }
+}
+void search(Point p) {
+  ans.dis2 = -1;
+  search(p, root, 0);
+}
+} // namespace KD_Tree
+
+void solve() {
+  static KD_Tree::Point p[MAXN];
+  int n, m;
+  cin >> n >> m;
+  for (int i = 0; i < n; ++i) {
+    p[i].id = i;
+    cin >> p[i].x[0] >> p[i].x[1] >> p[i].c;
+  }
+  KD_Tree::init();
+  KD_Tree::root = KD_Tree::build(p, 0, n, 0);
+
+  for (KD_Tree::Point q; m; --m) {
+    cin >> q.x[0] >> q.x[1] >> q.c;
+    KD_Tree::search(q);
+    cout << KD_Tree::ans.p.x[0] << ' ' << KD_Tree::ans.p.x[1] << ' '
+         << KD_Tree::ans.p.c << '\n';
+  }
+}
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  int o_o;
+  for (cin >> o_o; o_o; --o_o) solve();
+
+  return 0;
+}
+
+// 寻找远点
+inline void cmin(int &a, int b) { b < a ? a = b : 1; }
+inline void cmax(int &a, int b) { a < b ? a = b : 1; }
+inline int ibs(int a) { return a < 0 ? -a : a; }
+struct D {
+  int d[2], mx0, mx1, mi0, mi1;
+  D *l, *r;
+} t[N], *rt;
+int cpd, ans;
+inline bool cmp(const D &a, const D &b) {
+  return (a.d[cpd] ^ b.d[cpd]) ? a.d[cpd] < b.d[cpd]
+                               : a.d[cpd ^ 1] < b.d[cpd ^ 1];
+}
+inline void kd_upd(D *u) {
+  if (u->l) {
+    cmax(u->mx0, u->l->mx0);
+    cmax(u->mx1, u->l->mx1);
+    cmin(u->mi0, u->l->mi0);
+    cmin(u->mi1, u->l->mi1);
+  }
+  if (u->r) {
+    cmax(u->mx0, u->r->mx0);
+    cmax(u->mx1, u->r->mx1);
+    cmin(u->mi0, u->r->mi0);
+    cmin(u->mi1, u->r->mi1);
+  }
+}
+D *kd_bld(int l, int r, int d) {
+  int m = l + r >> 1;
+  cpd = d;
+  std::nth_element(t + l + 1, t + m + 1, t + r + 1, cmp);
+  t[m].mx0 = t[m].mi0 = t[m].d[0];
+  t[m].mx1 = t[m].mi1 = t[m].d[1];
+  if (l ^ m) t[m].l = kd_bld(l, m - 1, d ^ 1);
+  if (r ^ m) t[m].r = kd_bld(m + 1, r, d ^ 1);
+  kd_upd(t + m);
+  return t + m;
+}
+inline void kd_ins(D *ne) {
+  int cd = 0;
+  D *u = rt;
+  while (true) {
+    cmax(u->mx0, ne->mx0), cmin(u->mi0, ne->mi0);
+    cmax(u->mx1, ne->mx1), cmin(u->mi1, ne->mi1);
+    if (ne->d[cd] < u->d[cd]) {
+      if (u->l)
+        u = u->l;
+      else {
+        u->l = ne;
+        return;
+      }
+    } else {
+      if (u->r)
+        u = u->r;
+      else {
+        u->r = ne;
+        return;
+      }
+    }
+    cd ^= 1;
+  }
+}
+inline int dist(int x, int y, D *u) {
+  int r = 0;
+  if (x < u->mi0)
+    r = u->mi0 - x;
+  else if (x > u->mx0)
+    r = x - u->mx0;
+  if (y < u->mi1)
+    r += u->mi1 - y;
+  else if (y > u->mx1)
+    r += y - u->mx1;
+  return r;
+}
+inline void kd_quy(D *u, const int &x, const int &y) {
+  int dl, dr, d0;
+  d0 = ibs(u->d[0] - x) + ibs(u->d[1] - y);
+  if (d0 < ans) ans = d0;
+  dl = u->l ? dist(x, y, u->l) : inf;
+  dr = u->r ? dist(x, y, u->r) : inf;
+  if (dl < dr) {
+    if (dl < ans) kd_quy(u->l, x, y);
+    if (dr < ans) kd_quy(u->r, x, y);
+  } else {
+    if (dr < ans) kd_quy(u->r, x, y);
+    if (dl < ans) kd_quy(u->l, x, y);
+  }
+}
+
+\end{lstlisting}
 
 \section{String}
 
@@ -1411,19 +1659,17 @@ int lcp(int i, int j) {
 void prework(char x[], int m, int next[]) {
   next[0] = m;
   int j = 0;
-  while (j + 1 < m && x[j] == x[j + 1])
-    j++;
+  while (j + 1 < m && x[j] == x[j + 1]) ++j;
   next[1] = j;
   int k = 1;
-  for (int i = 2; i < m; i++) {
+  for (int i = 2; i < m; ++i) {
     int p = next[k] + k − 1;
     int L = next[i − k];
     if (i + L < p + 1)
       next[i] = L;
     else {
       j = max(0, p − i + 1);
-      while (i + j < m && x[i + j] == x[j])
-        j++;
+      while (i + j < m && x[i + j] == x[j]) j++;
       next[i] = j;
       k = i;
     }
@@ -1432,19 +1678,17 @@ void prework(char x[], int m, int next[]) {
 void exkmp(char x[], int m, char y[], int n, int next[], int extend[]) {
   prework(x, m, next);
   int j = 0;
-  while (j < n && j < m && x[j] == y[j])
-    j++;
+  while (j < n && j < m && x[j] == y[j]) ++j;
   extend[0] = j;
   int k = 0;
-  for (int i = 1; i < n; i++) {
+  for (int i = 1; i < n; ++i) {
     int p = extend[k] + k − 1;
     int L = next[i − k];
     if (i + L < p + 1)
       extend[i] = L;
     else {
       j = max(0, p − i + 1);
-      while (i + j < n && j < m && y[i + j] == x[j])
-        j++;
+      while (i + j < n && j < m && y[i + j] == x[j]) j++;
       extend[i] = j;
       k = i;
     }
@@ -1463,9 +1707,7 @@ struct PT {
     l[1] = -1;
     fail[0] = fail[1] = 1;
     for (int i = 0; i < 26; ++i) {
-      for (int j = 0; j < nc; ++j) {
-        ch[i][j] = 0;
-      }
+      for (int j = 0; j < nc; ++j) { ch[i][j] = 0; }
     }
     for (int i = 2; i < nc; ++i) {
       l[i] = 0;
@@ -1481,15 +1723,11 @@ struct PT {
   int insert(char c) {
     int id = c - 'a';
     s[++n] = c;
-    while (s[n - l[lst] - 1] != s[n]) {
-      lst = fail[lst];
-    }
+    while (s[n - l[lst] - 1] != s[n]) { lst = fail[lst]; }
     if (ch[id][lst] == 0) {
       l[nc] = l[lst] + 2;
       int f = fail[lst];
-      while (s[n - l[f] - 1] != s[n]) {
-        f = fail[f];
-      }
+      while (s[n - l[f] - 1] != s[n]) { f = fail[f]; }
       fail[nc] = ch[id][f];
       dep[nc] = dep[fail[nc]] + 1;
       ch[id][lst] = nc;
@@ -1510,9 +1748,7 @@ int main() {
   cin >> S;
   int n = strlen(S);
   pt.init();
-  for (int i = 0; i < n; ++i) {
-    len[i] = pt.l[pt.insert(S[i])];
-  }
+  for (int i = 0; i < n; ++i) { len[i] = pt.l[pt.insert(S[i])]; }
   pt.init();
   int ans = 0;
   for (int i = n - 1; i; --i) {
@@ -1569,7 +1805,7 @@ int add_char(int u, int id) {
 }
 void build_acam() {
   queue<int> que;
-  FOR(i, 0, 26)
+  for (int i = 0; i < 26; ++i)
     if (~ch[0][i]) {
       que.push(ch[0][i]);
       fail[ch[0][i]] = 0;
@@ -1580,7 +1816,7 @@ void build_acam() {
   while (!que.empty()) {
     int u = que.front();
     que.pop();
-    FOR(i, 0, 26)
+    for (int i = 0; i < 26; ++i)
       if (~ch[u][i]) {
         que.push(ch[u][i]);
         fail[ch[u][i]] = ch[fail[u]][i];
@@ -1589,7 +1825,7 @@ void build_acam() {
         ch[u][i] = ch[fail[u]][i];
       }
   }
-  FOR(i, 1, node_c) adj[fail[i]].push_back(i);
+  for (int i = 1; i < node_c; ++i) adj[fail[i]].push_back(i);
 }
 
 \end{lstlisting}
@@ -1608,12 +1844,8 @@ void mancher(char *s, int n) {
     } else {
       p[i] = 1;
     }
-    while (str[i + p[i]] == str[i - p[i]]) {
-      ++p[i];
-    }
-    if (i + p[i] > j + p[j]) {
-      j = i;
-    }
+    while (str[i + p[i]] == str[i - p[i]]) { ++p[i]; }
+    if (i + p[i] > j + p[j]) { j = i; }
   }
 }
 
@@ -1624,9 +1856,7 @@ void get_next(char *S, int *nxt, int n) {
   nxt[0] = -1;
   int j = -1;
   for (int i = 1; i < n; ++i) {
-    while ((~j) && S[j + 1] != S[i]) {
-      j = nxt[j];
-    }
+    while ((~j) && S[j + 1] != S[i]) j = nxt[j];
     nxt[i] = (S[j + 1] == S[i]) ? (++j) : j;
   }
 }
@@ -1634,13 +1864,9 @@ void get_next(char *S, int *nxt, int n) {
 int pattern(char *S, char *T, int *nxt, int n, int m) {
   int j = -1;
   for (int i = 0; i < m; ++i) {
-    while ((~j) && S[j + 1] != T[i]) {
-      j = nxt[j];
-    }
+    while ((~j) && S[j + 1] != T[i]) j = nxt[j];
     j += S[j + 1] == T[i];
-    if (j == n - 1) {
-      return i - n + 1;
-    }
+    if (j == n - 1) return i - n + 1;
   }
   return -1;
 }
@@ -1670,52 +1896,6 @@ void init(char *s, int n) {
 
 \section{Graph Theory}
 
-\subsection{KM}
-\begin{lstlisting}
-int n, m, match[MAXN];
-int adj[MAXN][MAXN], lx[MAXN], ly[MAXN], slack[MAXN];
-int visx[MAXN], visx_c, visy[MAXN], visy_c;
-
-bool dfs(int x) {
-  visx[x] = visx_c;
-  for (int y = 0; y < m; ++y)
-    if (visy[y] ^ visy_c) {
-      int t = lx[x] + ly[y] - adj[x][y];
-      if (!t) {
-        visy[y] = visy_c;
-        if (match[y] < 0 || dfs(match[y])) return match[y] = x, true;
-      } else
-        (slack[y] > t) && (slack[y] = t);
-    }
-  return false;
-}
-
-int KM() {
-  memset(match, -1, sizeof(int) * m);
-  memset(ly, 0, sizeof(int) * m);
-  for (int i = 0; i < n; ++i) {
-    lx[i] = -INF;
-    for (int j = 0; j < m; ++j) (adj[i][j] > lx[i]) && (lx[i] = adj[i][j]);
-  }
-  for (int x = 0; x < n; ++x) {
-    fill(slack, slack + m, INF);
-    for (;;) {
-      ++visx_c, ++visy_c;
-      if (dfs(x)) break;
-      int d = INF;
-      for (int i = 0; i < m; ++i)
-        (visy[i] ^ visy_c) && (d > slack[i]) && (d = slack[i]);
-      for (int i = 0; i < n; ++i) (visx[i] == visx_c) && (lx[i] -= d);
-      for (int i = 0; i < m; ++i)
-        (visy[i] ^ visy_c) ? slack[i] -= d : ly[i] += d;
-    }
-  }
-  int res = 0;
-  for (int i = 0; i < m; ++i) (~match[i]) && (res += adj[match[i]][i]);
-  return res;
-}
-
-\end{lstlisting}
 \subsection{sap}
 \begin{lstlisting}
 struct MF {
@@ -2057,10 +2237,6 @@ set noundofile
 set nu
 set smartindent
 set cindent
-set foldmethod=marker
-set foldlevel=3 
-set foldenable
-set autowrite
 set noeb
 set tabstop=2
 set softtabstop=2
@@ -2070,20 +2246,17 @@ set expandtab
 :imap jk <Esc>
 
 map <F5> : call Complie() <CR>
-
 func Complie()
 	exec "w"
-	exec "!g++ % -o %< -g -Wall -std=c++11"
+	exec "!g++ % -o %< -g -Wall -std=gnu++17 -static"
 endfunc
 
 map <F6> : call Run() <CR>
-
 func Run()
 	exec "!./%<"
 endfunc
 
 map <F9> : call DeBug() <CR>
-
 func DeBug()
 	exec "!gdb %<"
 endfunc
