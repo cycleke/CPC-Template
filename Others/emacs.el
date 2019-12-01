@@ -1,0 +1,18 @@
+(defun comp ()
+  (interactive)
+  (save-some-buffers t)
+  (setq filename (file-name-nondirectory buffer-file-name))
+  (setq progname (file-name-sans-extension filename))
+  (setq suffix (file-name-extension filename))
+  (compile (concat "g++ " filename " -o " progname " -O2 -Wall -Werror")))
+(add-hook 'c++-mode
+          '(lambda ()
+             (c-set-style "K&R")
+             (setq tab-width 2)
+             (setq indent-tabs-mode nil)
+             (setq c-basic-offset 2)))
+(global-set-key [f5] 'comp)
+
+(ido-mode t)
+(delete-selection-mode t)
+(global-auto-revert-mode t)
