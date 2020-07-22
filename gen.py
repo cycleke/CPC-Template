@@ -35,7 +35,10 @@ def main():
     ]
     tex = ''
     for section, path in sections:
-        tex += gen_section(section, path)
+        try:
+            tex += gen_section(section, path)
+        except:
+            pass
     head = open('head.tex', 'r').read()
     tex = head % (tex)
     open('main.tex', 'w').write(tex)

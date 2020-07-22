@@ -56,521 +56,6 @@
 
 \section{Math}
 
-\subsection{LinearSieve}
-\begin{lstlisting}
-const int MAXN = 1e7 + 5;
-
-bool vis[MAXN];
-int prime[MAXN / 10], prime_cnt;
-int fac[MAXN], e[MAXN], d[MAXN], mu[MAXN], phi[MAXN];
-// e 质因子最高次数， d 因数个数
-void sieve() {
-  fac[1] = 1, e[1] = 0, d[1] = 1, mu[1] = 1, phi[1] = 1;
-  for (int i = 2; i < MAXN; ++i) {
-    if (!vis[i]) {
-      prime[prime_cnt++] = i;
-      fac[i] = i, e[i] = 1, d[i] = 2, mu[i] = -1, phi[i] = i - 1;
-    }
-    for (int j = 0; j < prime_cnt; ++j) {
-      int t = prime[j] * i;
-      if (t >= MAXN) { break; }
-      vis[t] = true;
-      fac[t] = prime[j];
-      if (i % prime[j] == 0) {
-        e[t] = e[i] + 1;
-        d[t] = d[i] / (e[i] + 1) * (e[t] + 1);
-        mu[t] = 0;
-        phi[t] = phi[i] * prime[j];
-        break;
-      } else {
-        e[t] = 1;
-        d[t] = d[i] * 2;
-        mu[t] = -mu[i];
-        phi[t] = phi[i] * (prime[j] - 1);
-      }
-    }
-  }
-}
-
-\end{lstlisting}
-\subsection{lucas}
-\begin{lstlisting}
-// C(n, m) = C(n / p, m / p) * C(n % p, m % p) (mod p)
-ll lucas(ll n, ll k, int p) {
-  ll ret = 1;
-  while (n && k) {
-    ll nn = n % p, kk = k % p;
-    if (nn < kk) return 0;
-    ret = ret * f[nn] * mod_pow(f[kk] * f[nn - kk] % p, p - 2, p) % p;
-    n /= p, k /= p;
-  }
-  return res;
-}
-
-\end{lstlisting}
-\subsection{Pollard rho}
-\begin{lstlisting}
-inline ll rand64(ll x) {
-  return 1ll * ((rand() << 15 ^ rand()) << 30 ^ (rand() << 15 ^ rand())) % x;
-}
-
-inline ll Pollard_rho(const ll &x, const int &y) {
-  ll v0 = rand64(x - 1) + 1, v = v0, d, s = 1;
-  for (register int t = 0, k = 1;;) {
-    if (v = (mod_mul(v, v, x) + y) % x, s = mod_mul(s, abs(v - v0), x),
-        !(v ^ v0) || !s)
-      return x;
-    if (++t == k) {
-      if ((d = __gcd(s, x)) ^ 1) return d;
-      v0 = v, k <<= 1;
-    }
-  }
-}
-
-ll ans;
-vector<ll> factor;
-void findfac(ll n) {
-  if (Miller_Rabin(n)) {
-    factor.push_back(n);
-    return;
-  }
-  ll p = n;
-  while (p >= n) { p = Pollard_rho(p, rand64(n - 1) + 1); }
-  findfac(p);
-  findfac(n / p);
-}
-
-\end{lstlisting}
-\subsection{china}
-\begin{lstlisting}
-int china(int n, int *a, int *m) {
-  int lcm = 1, res = 0;
-  for (int i = 0; i < n; ++i) lcm *= m[i];
-  for (int i = 0; i < n; ++i) {
-    int t = lcm / m[i], x, y;
-    exgcd(t, m[i], x, y);
-    x = (x % m[i] + m[i]) % m[i];
-    res = (res + 1LL * t * x) % lcm;
-  }
-  return res;
-}
-
-\end{lstlisting}
-\subsection{exctr}
-\begin{lstlisting}
-int exctr(int n, int *a, int *m) {
-  int M = m[0], res = a[0];
-  for (int i = 1; i < n; ++i) {
-    int a = M, b = m[i], c = (a[i] - res % b + b) % b, x, y;
-    int g = exgcd(a, b, x, y), bg = b / g;
-    if (c % g != 0) return -1;
-    x = 1LL * x * (c / g) % bg;
-    res += x * M;
-    M *= bg;
-    res = (res % M + M) % M;
-  }
-  return res;
-}
-
-\end{lstlisting}
-\subsection{burnside}
-\begin{lstlisting}
-// |X/G|={1 \over {|G|}} \sum_{g \in G}|X^g|
-// Gym - 101873B
-// m边形，每边是n*n的矩形，用c种颜色染色，可进行水平旋转，问不同多边形个数。
-#include <bits/stdc++.h>
-using namespace std;
-
-const int MOD = 1e9 + 7;
-
-int mod_pow(int a, int b) {
-  int r = 1;
-  for (; b; b >>= 1, a = 1LL * a * a % MOD)
-    if (b & 1) r = 1LL * a * r % MOD;
-  return r;
-}
-
-int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-
-  int n, m, c;
-  cin >> n >> m >> c;
-
-  int ans = 0;
-  for (int i = 1; i <= m; ++i)
-    ans = (ans + mod_pow(c, n * n * __gcd(i, m))) % MOD;
-  ans = 1LL * ans * mod_pow(m, MOD - 2) % MOD;
-  cout << ans << '\n';
-  return 0;
-}
-
-\end{lstlisting}
-\subsection{exgcd}
-\begin{lstlisting}
-int exgcd(int a, int b, int &x, int &y) {
-  if (b == 0) return x = 1, y = 0, a;
-  int g = exgcd(b, a % b, y, x);
-  y -= a / b * x;
-  return g;
-}
-
-\end{lstlisting}
-\subsection{杜教筛}
-\begin{lstlisting}
-// e = mu x 1
-// d = 1 x 1
-// sigma = d x 1
-// phi = mu x id
-// id = phi x 1
-// id^2 = (id * phi) x id
-
-// S = sum(f)
-// sum(fxg) = sum(g(i)S(n/i))
-map<int, int> mp_mu;
-
-int S_mu(int n) {
-  if (n < MAXN) return sum_mu[n];
-  if (mp_mu[n]) return mp_mu[n];
-  int ret = 1;
-  for (int i = 2, j; i <= n; i = j + 1) {
-    j = n / (n / i);
-    ret -= S_mu(n / i) * (j - i + 1);
-  }
-  return mp_mu[n] = ret;
-}
-
-ll S_phi(int n) {
-  ll res = 0;
-  for (int i = 1, j; i <= n; i = j + 1) {
-    j = n / (n / i);
-    res += 1LL * (S_mu(j) - S_mu(i - 1)) * (n / i) * (n / i);
-  }
-  return (res - 1) / 2 + 1;
-}
-
-\end{lstlisting}
-\subsection{FFT}
-\begin{lstlisting}
-const int MAXN = 4 * 1e5 + 3;
-const double PI = acos(-1);
-complex<double> a[MAXN], b[MAXN];
-
-int n, bit;
-int rev[MAXN];
-
-void fft(complex<double> *a, int sign) {
-  for (int i = 0; i < n; ++i)
-    if (i < rev[i]) swap(a[i], a[rev[i]]);
-
-  for (int j = 1; j < n; j <<= 1) {
-    complex<double> wn(cos(2 * PI / (j << 1)), sign * sin(2 * PI / (j << 1)));
-    for (int i = 0; i < n; i += (j << 1)) {
-      complex<double> w(1, 0), t0, t1;
-      FOR(k, 0, j) {
-        t0 = a[i + k];
-        t1 = w * a[i + j + k];
-        a[i + k] = t0 + t1;
-        a[i + j + k] = t0 - t1;
-        w *= wn;
-      }
-    }
-  }
-  if (sign == -1)
-    for (int i = 0; i < n; ++i) a[i] /= n;
-}
-
-int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(0);
-  cout.tie(0);
-
-  int n, m, x;
-  cin >> n >> m;
-  for (int i = 0; i <= n; ++i) {
-    cin >> x;
-    a[i].real(x);
-  }
-  for (int i = 0; i <= m; ++i) {
-    cin >> x;
-    b[i].real(x);
-  }
-
-  ::n = 1;
-  bit = 0;
-  while (::n <= n + m) {
-    ::n <<= 1;
-    ++bit;
-  }
-  rev[0] = 0;
-  FOR(i, 1, ::n) rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (bit - 1));
-  fft(a, 1);
-  fft(b, 1);
-  FOR(i, 0, ::n) a[i] *= b[i];
-  fft(a, -1);
-  FOR(i, 0, n + m + 1) cout << int(a[i].real() + .5) << " ";
-  cout << "\n";
-  return 0;
-}
-
-\end{lstlisting}
-\subsection{LinearRecurrence}
-\begin{lstlisting}
-struct LinearRecurrence {
-  using int64 = long long;
-  using vec = std::vector<int64>;
-
-  static void extand(vec &a, size_t d, int64 value = 0) {
-    if (d <= a.size()) return;
-    a.resize(d, value);
-  }
-
-  static vec BerlekampMassey(const vec &s, int64 mod) {
-    std::function<int64(int64)> inverse = [&](int64 a) {
-      return a == 1 ? 1 : (int64)(mod - mod / a) * inverse(mod % a) % mod;
-    };
-    vec A = {1}, B = {1};
-    int64 b = s[0];
-    for (size_t i = 1, m = 1; i < s.size(); ++i, m++) {
-      int64 d = 0;
-      for (size_t j = 0; j < A.size(); ++j) { d += A[j] * s[i - j] % mod; }
-      if (!(d %= mod)) continue;
-      if (2 * (A.size() - 1) <= i) {
-        auto temp = A;
-        extand(A, B.size() + m);
-        int64 coef = d * inverse(b) % mod;
-        for (size_t j = 0; j < B.size(); ++j) {
-          A[j + m] -= coef * B[j] % mod;
-          if (A[j + m] < 0) A[j + m] += mod;
-        }
-        B = temp, b = d, m = 0;
-      } else {
-        extand(A, B.size() + m);
-        int64 coef = d * inverse(b) % mod;
-        for (size_t j = 0; j < B.size(); ++j) {
-          A[j + m] -= coef * B[j] % mod;
-          if (A[j + m] < 0) A[j + m] += mod;
-        }
-      }
-    }
-    return A;
-  }
-
-  static void exgcd(int64 a, int64 b, int64 &g, int64 &x, int64 &y) {
-    if (!b)
-      x = 1, y = 0, g = a;
-    else {
-      exgcd(b, a % b, g, y, x);
-      y -= x * (a / b);
-    }
-  }
-
-  static int64 crt(const vec &c, const vec &m) {
-    int n = c.size();
-    int64 M = 1, ans = 0;
-    for (int i = 0; i < n; ++i) M *= m[i];
-    for (int i = 0; i < n; ++i) {
-      int64 x, y, g, tm = M / m[i];
-      exgcd(tm, m[i], g, x, y);
-      ans = (ans + tm * x * c[i] % M) % M;
-    }
-    return (ans + M) % M;
-  }
-
-  static vec ReedsSloane(const vec &s, int64 mod) {
-    auto inverse = [](int64 a, int64 m) {
-      int64 d, x, y;
-      exgcd(a, m, d, x, y);
-      return d == 1 ? (x % m + m) % m : -1;
-    };
-    auto L = [](const vec &a, const vec &b) {
-      int da = (a.size() > 1 || (a.size() == 1 && a[0])) ? a.size() - 1 : -1000;
-      int db = (b.size() > 1 || (b.size() == 1 && b[0])) ? b.size() - 1 : -1000;
-      return std::max(da, db + 1);
-    };
-    auto prime_power = [&](const vec &s, int64 mod, int64 p, int64 e) {
-      // linear feedback shift register mod p^e, p is prime
-      std::vector<vec> a(e), b(e), an(e), bn(e), ao(e), bo(e);
-      vec t(e), u(e), r(e), to(e, 1), uo(e), pw(e + 1);
-      ;
-      pw[0] = 1;
-      for (int i = pw[0] = 1; i <= e; ++i) pw[i] = pw[i - 1] * p;
-      for (int64 i = 0; i < e; ++i) {
-        a[i] = {pw[i]}, an[i] = {pw[i]};
-        b[i] = {0}, bn[i] = {s[0] * pw[i] % mod};
-        t[i] = s[0] * pw[i] % mod;
-        if (t[i] == 0) {
-          t[i] = 1, u[i] = e;
-        } else {
-          for (u[i] = 0; t[i] % p == 0; t[i] /= p, ++u[i])
-            ;
-        }
-      }
-      for (size_t k = 1; k < s.size(); ++k) {
-        for (int g = 0; g < e; ++g) {
-          if (L(an[g], bn[g]) > L(a[g], b[g])) {
-            ao[g] = a[e - 1 - u[g]];
-            bo[g] = b[e - 1 - u[g]];
-            to[g] = t[e - 1 - u[g]];
-            uo[g] = u[e - 1 - u[g]];
-            r[g] = k - 1;
-          }
-        }
-        a = an, b = bn;
-        for (int o = 0; o < e; ++o) {
-          int64 d = 0;
-          for (size_t i = 0; i < a[o].size() && i <= k; ++i) {
-            d = (d + a[o][i] * s[k - i]) % mod;
-          }
-          if (d == 0) {
-            t[o] = 1, u[o] = e;
-          } else {
-            for (u[o] = 0, t[o] = d; t[o] % p == 0; t[o] /= p, ++u[o])
-              ;
-            int g = e - 1 - u[o];
-            if (L(a[g], b[g]) == 0) {
-              extand(bn[o], k + 1);
-              bn[o][k] = (bn[o][k] + d) % mod;
-            } else {
-              int64 coef =
-                  t[o] * inverse(to[g], mod) % mod * pw[u[o] - uo[g]] % mod;
-              int m = k - r[g];
-              extand(an[o], ao[g].size() + m);
-              extand(bn[o], bo[g].size() + m);
-              for (size_t i = 0; i < ao[g].size(); ++i) {
-                an[o][i + m] -= coef * ao[g][i] % mod;
-                if (an[o][i + m] < 0) an[o][i + m] += mod;
-              }
-              while (an[o].size() && an[o].back() == 0) an[o].pop_back();
-              for (size_t i = 0; i < bo[g].size(); ++i) {
-                bn[o][i + m] -= coef * bo[g][i] % mod;
-                if (bn[o][i + m] < 0) bn[o][i + m] -= mod;
-              }
-              while (bn[o].size() && bn[o].back() == 0) bn[o].pop_back();
-            }
-          }
-        }
-      }
-      return std::make_pair(an[0], bn[0]);
-    };
-
-    std::vector<std::tuple<int64, int64, int>> fac;
-    for (int64 i = 2; i * i <= mod; ++i)
-      if (mod % i == 0) {
-        int64 cnt = 0, pw = 1;
-        while (mod % i == 0) mod /= i, ++cnt, pw *= i;
-        fac.emplace_back(pw, i, cnt);
-      }
-    if (mod > 1) fac.emplace_back(mod, mod, 1);
-    std::vector<vec> as;
-    size_t n = 0;
-    for (auto &&x : fac) {
-      int64 mod, p, e;
-      vec a, b;
-      std::tie(mod, p, e) = x;
-      auto ss = s;
-      for (auto &&x : ss) x %= mod;
-      std::tie(a, b) = prime_power(ss, mod, p, e);
-      as.emplace_back(a);
-      n = std::max(n, a.size());
-    }
-    vec a(n), c(as.size()), m(as.size());
-    for (size_t i = 0; i < n; ++i) {
-      for (size_t j = 0; j < as.size(); ++j) {
-        m[j] = std::get<0>(fac[j]);
-        c[j] = i < as[j].size() ? as[j][i] : 0;
-      }
-      a[i] = crt(c, m);
-    }
-    return a;
-  }
-
-  LinearRecurrence(const vec &s, const vec &c, int64 mod)
-      : init(s), trans(c), mod(mod), m(s.size()) {}
-
-  LinearRecurrence(const vec &s, int64 mod, bool is_prime = true) : mod(mod) {
-    vec A = is_prime ? BerlekampMassey(s, mod) : ReedsSloane(s, mod);
-    if (A.empty()) A = {0};
-    m = A.size() - 1;
-    trans.resize(m);
-    for (int i = 0; i < m; ++i) { trans[i] = (mod - A[i + 1]) % mod; }
-    std::reverse(trans.begin(), trans.end());
-    init = {s.begin(), s.begin() + m};
-  }
-
-  int64 calc(int64 n) {
-    if (mod == 1) return 0;
-    if (n < m) return init[n];
-    vec v(m), u(m << 1);
-    int msk = !!n;
-    for (int64 m = n; m > 1; m >>= 1) msk <<= 1;
-    v[0] = 1 % mod;
-    for (int x = 0; msk; msk >>= 1, x <<= 1) {
-      std::fill_n(u.begin(), m * 2, 0);
-      x |= !!(n & msk);
-      if (x < m)
-        u[x] = 1 % mod;
-      else { // can be optimized by fft/ntt
-        for (int i = 0; i < m; ++i) {
-          for (int j = 0, t = i + (x & 1); j < m; ++j, ++t) {
-            u[t] = (u[t] + v[i] * v[j]) % mod;
-          }
-        }
-        for (int i = m * 2 - 1; i >= m; --i) {
-          for (int j = 0, t = i - m; j < m; ++j, ++t) {
-            u[t] = (u[t] + trans[j] * u[i]) % mod;
-          }
-        }
-      }
-      v = {u.begin(), u.begin() + m};
-    }
-    int64 ret = 0;
-    for (int i = 0; i < m; ++i) { ret = (ret + v[i] * init[i]) % mod; }
-    return ret;
-  }
-
-  vec init, trans;
-  int64 mod;
-  int m;
-};
-
-\end{lstlisting}
-\subsection{Miller Rabin}
-\begin{lstlisting}
-inline ll mod_mul(const ll &a, const ll &b, const ll &mod) {
-  ll k = (ll)((1.0L * a * b) / (1.0L * mod)), t = a * b - k * mod;
-  t -= mod;
-  while (t < 0) t += mod;
-  return t;
-}
-inline ll mod_pow(ll a, ll b, const ll &mod) {
-  ll res = 1;
-  for (; b; b >>= 1, a = mod_mul(a, a, mod))
-    (b & 1) && (res = mod_mul(res, a, mod));
-  return res;
-}
-
-inline bool check(const ll &x, const ll &p) {
-  if (!(x % p) || mod_pow(p % x, x - 1, x) ^ 1) return false;
-  ll k = x - 1, t;
-  while (~k & 1) {
-    if (((t = mod_pow(p % x, k >>= 1, x)) ^ 1) && (t ^ (x - 1))) return false;
-    if (!(t ^ (x - 1))) return true;
-  }
-  return true;
-}
-
-inline bool Miller_Rabin(const ll &x) {
-  if (x < 2) return false;
-  static const int p[12] = {2, 3, 5, 7, 11, 13, 17, 19, 61, 2333, 4567, 24251};
-  for (int i = 0; i < 12; ++i) {
-    if (!(x ^ p[i])) return true;
-    if (!check(x, p[i])) return false;
-  }
-  return true;
-}
-
-\end{lstlisting}
 \subsection{BGSG}
 \begin{lstlisting}
 // Finds the primitive root modulo p
@@ -628,106 +113,18 @@ vector<int> BSGS(int n, int k, int a) {
 }
 
 \end{lstlisting}
-\subsection{gauss}
+\subsection{lucas}
 \begin{lstlisting}
-
-const double EPS = 1e-9;
-const int MAXN = MAX_NODE;
-double a[MAXN][MAXN], x[MAXN];
-int equ, var;
-
-int gauss() {
-  int i, j, k, col, max_r;
-  for (k = 0, col = 0; k < equ && col < var; k++, col++) {
-    max_r = k;
-    for (i = k + 1; i < equ; i++)
-      if (fabs(a[i][col]) > fabs(a[max_r][col])) max_r = i;
-    if (fabs(a[max_r][col]) < EPS) return 0;
-
-    if (k != max_r) {
-      for (j = col; j < var; j++) swap(a[k][j], a[max_r][j]);
-      swap(x[k], x[max_r]);
-    }
-
-    x[k] /= a[k][col];
-    for (j = col + 1; j < var; j++) a[k][j] /= a[k][col];
-    a[k][col] = 1;
-
-    for (i = k + 1; i < equ; i++)
-      if (i != k) {
-        x[i] -= x[k] * a[i][col];
-        for (j = col + 1; j < var; j++) a[i][j] -= a[k][j] * a[i][col];
-        a[i][col] = 0;
-      }
+// C(n, m) = C(n / p, m / p) * C(n % p, m % p) (mod p)
+ll lucas(ll n, ll k, int p) {
+  ll ret = 1;
+  while (n && k) {
+    ll nn = n % p, kk = k % p;
+    if (nn < kk) return 0;
+    ret = ret * f[nn] * mod_pow(f[kk] * f[nn - kk] % p, p - 2, p) % p;
+    n /= p, k /= p;
   }
-
-  for (col = equ - 1, k = var - 1; ~col; --col, --k) {
-    if (fabs(a[col][k]) > 0) {
-      for (i = 0; i < k; ++i) {
-        x[i] -= x[k] * a[i][col];
-        for (j = col + 1; j < var; j++) a[i][j] -= a[k][j] * a[i][col];
-        a[i][col] = 0;
-      }
-    }
-  }
-
-  return 1;
-}
-
-\end{lstlisting}
-\subsection{类欧几里德算法}
-\begin{lstlisting}
-//求 f=sum((a*i+b)/c),g=sum((a*i+b)/c*i),h=sum(((a*i+b)/c)^2), for i in [0..n],
-//整除向下
-#include <bits/stdc++.h>
-#define int long long
-using namespace std;
-const int P = 998244353;
-int i2 = 499122177, i6 = 166374059;
-struct data {
-  data() { f = g = h = 0; }
-  int f, g, h;
-}; // 三个函数打包
-data calc(int n, int a, int b, int c) {
-  int ac = a / c, bc = b / c, m = (a * n + b) / c, n1 = n + 1, n21 = n * 2 + 1;
-  data d;
-  if (a == 0) { // 迭代到最底层
-    d.f = bc * n1 % P;
-    d.g = bc * n % P * n1 % P * i2 % P;
-    d.h = bc * bc % P * n1 % P;
-    return d;
-  }
-  if (a >= c || b >= c) { // 取模
-    d.f = n * n1 % P * i2 % P * ac % P + bc * n1 % P;
-    d.g = ac * n % P * n1 % P * n21 % P * i6 % P + bc * n % P * n1 % P * i2 % P;
-    d.h = ac * ac % P * n % P * n1 % P * n21 % P * i6 % P +
-          bc * bc % P * n1 % P + ac * bc % P * n % P * n1 % P;
-    d.f %= P, d.g %= P, d.h %= P;
-
-    data e = calc(n, a % c, b % c, c); // 迭代
-
-    d.h += e.h + 2 * bc % P * e.f % P + 2 * ac % P * e.g % P;
-    d.g += e.g, d.f += e.f;
-    d.f %= P, d.g %= P, d.h %= P;
-    return d;
-  }
-  data e = calc(m - 1, c, c - b - 1, a);
-  d.f = n * m % P - e.f, d.f = (d.f % P + P) % P;
-  d.g = m * n % P * n1 % P - e.h - e.f, d.g = (d.g * i2 % P + P) % P;
-  d.h = n * m % P * (m + 1) % P - 2 * e.g - 2 * e.f - d.f;
-  d.h = (d.h % P + P) % P;
-  return d;
-}
-
-int T, n, a, b, c;
-signed main() {
-  scanf("%lld", &T);
-  while (T--) {
-    scanf("%lld%lld%lld%lld", &n, &a, &b, &c);
-    data ans = calc(n, a, b, c);
-    printf("%lld %lld %lld\n", ans.f, ans.h, ans.g);
-  }
-  return 0;
+  return res;
 }
 
 \end{lstlisting}
@@ -1036,6 +433,609 @@ int main() {
 }
 
 \end{lstlisting}
+\subsection{exctr}
+\begin{lstlisting}
+int exctr(int n, int *a, int *m) {
+  int M = m[0], res = a[0];
+  for (int i = 1; i < n; ++i) {
+    int a = M, b = m[i], c = (a[i] - res % b + b) % b, x, y;
+    int g = exgcd(a, b, x, y), bg = b / g;
+    if (c % g != 0) return -1;
+    x = 1LL * x * (c / g) % bg;
+    res += x * M;
+    M *= bg;
+    res = (res % M + M) % M;
+  }
+  return res;
+}
+
+\end{lstlisting}
+\subsection{杜教筛}
+\begin{lstlisting}
+// e = mu x 1
+// d = 1 x 1
+// sigma = d x 1
+// phi = mu x id
+// id = phi x 1
+// id^2 = (id * phi) x id
+
+// S = sum(f)
+// sum(fxg) = sum(g(i)S(n/i))
+map<int, int> mp_mu;
+
+int S_mu(int n) {
+  if (n < MAXN) return sum_mu[n];
+  if (mp_mu[n]) return mp_mu[n];
+  int ret = 1;
+  for (int i = 2, j; i <= n; i = j + 1) {
+    j = n / (n / i);
+    ret -= S_mu(n / i) * (j - i + 1);
+  }
+  return mp_mu[n] = ret;
+}
+
+ll S_phi(int n) {
+  ll res = 0;
+  for (int i = 1, j; i <= n; i = j + 1) {
+    j = n / (n / i);
+    res += 1LL * (S_mu(j) - S_mu(i - 1)) * (n / i) * (n / i);
+  }
+  return (res - 1) / 2 + 1;
+}
+
+\end{lstlisting}
+\subsection{Miller Rabin}
+\begin{lstlisting}
+inline ll mod_mul(const ll &a, const ll &b, const ll &mod) {
+  ll k = (ll)((1.0L * a * b) / (1.0L * mod)), t = a * b - k * mod;
+  t -= mod;
+  while (t < 0) t += mod;
+  return t;
+}
+inline ll mod_pow(ll a, ll b, const ll &mod) {
+  ll res = 1;
+  for (; b; b >>= 1, a = mod_mul(a, a, mod))
+    (b & 1) && (res = mod_mul(res, a, mod));
+  return res;
+}
+
+inline bool check(const ll &x, const ll &p) {
+  if (!(x % p) || mod_pow(p % x, x - 1, x) ^ 1) return false;
+  ll k = x - 1, t;
+  while (~k & 1) {
+    if (((t = mod_pow(p % x, k >>= 1, x)) ^ 1) && (t ^ (x - 1))) return false;
+    if (!(t ^ (x - 1))) return true;
+  }
+  return true;
+}
+
+inline bool Miller_Rabin(const ll &x) {
+  if (x < 2) return false;
+  static const int p[12] = {2, 3, 5, 7, 11, 13, 17, 19, 61, 2333, 4567, 24251};
+  for (int i = 0; i < 12; ++i) {
+    if (!(x ^ p[i])) return true;
+    if (!check(x, p[i])) return false;
+  }
+  return true;
+}
+
+\end{lstlisting}
+\subsection{burnside}
+\begin{lstlisting}
+// |X/G|={1 \over {|G|}} \sum_{g \in G}|X^g|
+// Gym - 101873B
+// m边形，每边是n*n的矩形，用c种颜色染色，可进行水平旋转，问不同多边形个数。
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MOD = 1e9 + 7;
+
+int mod_pow(int a, int b) {
+  int r = 1;
+  for (; b; b >>= 1, a = 1LL * a * a % MOD)
+    if (b & 1) r = 1LL * a * r % MOD;
+  return r;
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  int n, m, c;
+  cin >> n >> m >> c;
+
+  int ans = 0;
+  for (int i = 1; i <= m; ++i)
+    ans = (ans + mod_pow(c, n * n * __gcd(i, m))) % MOD;
+  ans = 1LL * ans * mod_pow(m, MOD - 2) % MOD;
+  cout << ans << '\n';
+  return 0;
+}
+
+\end{lstlisting}
+\subsection{类欧几里德算法}
+\begin{lstlisting}
+//求 f=sum((a*i+b)/c),g=sum((a*i+b)/c*i),h=sum(((a*i+b)/c)^2), for i in [0..n],
+//整除向下
+#include <bits/stdc++.h>
+#define int long long
+using namespace std;
+const int P = 998244353;
+int i2 = 499122177, i6 = 166374059;
+struct data {
+  data() { f = g = h = 0; }
+  int f, g, h;
+}; // 三个函数打包
+data calc(int n, int a, int b, int c) {
+  int ac = a / c, bc = b / c, m = (a * n + b) / c, n1 = n + 1, n21 = n * 2 + 1;
+  data d;
+  if (a == 0) { // 迭代到最底层
+    d.f = bc * n1 % P;
+    d.g = bc * n % P * n1 % P * i2 % P;
+    d.h = bc * bc % P * n1 % P;
+    return d;
+  }
+  if (a >= c || b >= c) { // 取模
+    d.f = n * n1 % P * i2 % P * ac % P + bc * n1 % P;
+    d.g = ac * n % P * n1 % P * n21 % P * i6 % P + bc * n % P * n1 % P * i2 % P;
+    d.h = ac * ac % P * n % P * n1 % P * n21 % P * i6 % P +
+          bc * bc % P * n1 % P + ac * bc % P * n % P * n1 % P;
+    d.f %= P, d.g %= P, d.h %= P;
+
+    data e = calc(n, a % c, b % c, c); // 迭代
+
+    d.h += e.h + 2 * bc % P * e.f % P + 2 * ac % P * e.g % P;
+    d.g += e.g, d.f += e.f;
+    d.f %= P, d.g %= P, d.h %= P;
+    return d;
+  }
+  data e = calc(m - 1, c, c - b - 1, a);
+  d.f = n * m % P - e.f, d.f = (d.f % P + P) % P;
+  d.g = m * n % P * n1 % P - e.h - e.f, d.g = (d.g * i2 % P + P) % P;
+  d.h = n * m % P * (m + 1) % P - 2 * e.g - 2 * e.f - d.f;
+  d.h = (d.h % P + P) % P;
+  return d;
+}
+
+int T, n, a, b, c;
+signed main() {
+  scanf("%lld", &T);
+  while (T--) {
+    scanf("%lld%lld%lld%lld", &n, &a, &b, &c);
+    data ans = calc(n, a, b, c);
+    printf("%lld %lld %lld\n", ans.f, ans.h, ans.g);
+  }
+  return 0;
+}
+
+\end{lstlisting}
+\subsection{Pollard rho}
+\begin{lstlisting}
+inline ll rand64(ll x) {
+  return 1ll * ((rand() << 15 ^ rand()) << 30 ^ (rand() << 15 ^ rand())) % x;
+}
+
+inline ll Pollard_rho(const ll &x, const int &y) {
+  ll v0 = rand64(x - 1) + 1, v = v0, d, s = 1;
+  for (register int t = 0, k = 1;;) {
+    if (v = (mod_mul(v, v, x) + y) % x, s = mod_mul(s, abs(v - v0), x),
+        !(v ^ v0) || !s)
+      return x;
+    if (++t == k) {
+      if ((d = __gcd(s, x)) ^ 1) return d;
+      v0 = v, k <<= 1;
+    }
+  }
+}
+
+ll ans;
+vector<ll> factor;
+void findfac(ll n) {
+  if (Miller_Rabin(n)) {
+    factor.push_back(n);
+    return;
+  }
+  ll p = n;
+  while (p >= n) { p = Pollard_rho(p, rand64(n - 1) + 1); }
+  findfac(p);
+  findfac(n / p);
+}
+
+\end{lstlisting}
+\subsection{FFT}
+\begin{lstlisting}
+const int MAXN = 4 * 1e5 + 3;
+const double PI = acos(-1);
+complex<double> a[MAXN], b[MAXN];
+
+int n, bit;
+int rev[MAXN];
+
+void fft(complex<double> *a, int sign) {
+  for (int i = 0; i < n; ++i)
+    if (i < rev[i]) swap(a[i], a[rev[i]]);
+
+  for (int j = 1; j < n; j <<= 1) {
+    complex<double> wn(cos(2 * PI / (j << 1)), sign * sin(2 * PI / (j << 1)));
+    for (int i = 0; i < n; i += (j << 1)) {
+      complex<double> w(1, 0), t0, t1;
+      FOR(k, 0, j) {
+        t0 = a[i + k];
+        t1 = w * a[i + j + k];
+        a[i + k] = t0 + t1;
+        a[i + j + k] = t0 - t1;
+        w *= wn;
+      }
+    }
+  }
+  if (sign == -1)
+    for (int i = 0; i < n; ++i) a[i] /= n;
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(0);
+  cout.tie(0);
+
+  int n, m, x;
+  cin >> n >> m;
+  for (int i = 0; i <= n; ++i) {
+    cin >> x;
+    a[i].real(x);
+  }
+  for (int i = 0; i <= m; ++i) {
+    cin >> x;
+    b[i].real(x);
+  }
+
+  ::n = 1;
+  bit = 0;
+  while (::n <= n + m) {
+    ::n <<= 1;
+    ++bit;
+  }
+  rev[0] = 0;
+  FOR(i, 1, ::n) rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (bit - 1));
+  fft(a, 1);
+  fft(b, 1);
+  FOR(i, 0, ::n) a[i] *= b[i];
+  fft(a, -1);
+  FOR(i, 0, n + m + 1) cout << int(a[i].real() + .5) << " ";
+  cout << "\n";
+  return 0;
+}
+
+\end{lstlisting}
+\subsection{gauss}
+\begin{lstlisting}
+
+const double EPS = 1e-9;
+const int MAXN = MAX_NODE;
+double a[MAXN][MAXN], x[MAXN];
+int equ, var;
+
+int gauss() {
+  int i, j, k, col, max_r;
+  for (k = 0, col = 0; k < equ && col < var; k++, col++) {
+    max_r = k;
+    for (i = k + 1; i < equ; i++)
+      if (fabs(a[i][col]) > fabs(a[max_r][col])) max_r = i;
+    if (fabs(a[max_r][col]) < EPS) return 0;
+
+    if (k != max_r) {
+      for (j = col; j < var; j++) swap(a[k][j], a[max_r][j]);
+      swap(x[k], x[max_r]);
+    }
+
+    x[k] /= a[k][col];
+    for (j = col + 1; j < var; j++) a[k][j] /= a[k][col];
+    a[k][col] = 1;
+
+    for (i = k + 1; i < equ; i++)
+      if (i != k) {
+        x[i] -= x[k] * a[i][col];
+        for (j = col + 1; j < var; j++) a[i][j] -= a[k][j] * a[i][col];
+        a[i][col] = 0;
+      }
+  }
+
+  for (col = equ - 1, k = var - 1; ~col; --col, --k) {
+    if (fabs(a[col][k]) > 0) {
+      for (i = 0; i < k; ++i) {
+        x[i] -= x[k] * a[i][col];
+        for (j = col + 1; j < var; j++) a[i][j] -= a[k][j] * a[i][col];
+        a[i][col] = 0;
+      }
+    }
+  }
+
+  return 1;
+}
+
+\end{lstlisting}
+\subsection{exgcd}
+\begin{lstlisting}
+int exgcd(int a, int b, int &x, int &y) {
+  if (b == 0) return x = 1, y = 0, a;
+  int g = exgcd(b, a % b, y, x);
+  y -= a / b * x;
+  return g;
+}
+
+\end{lstlisting}
+\subsection{china}
+\begin{lstlisting}
+int china(int n, int *a, int *m) {
+  int lcm = 1, res = 0;
+  for (int i = 0; i < n; ++i) lcm *= m[i];
+  for (int i = 0; i < n; ++i) {
+    int t = lcm / m[i], x, y;
+    exgcd(t, m[i], x, y);
+    x = (x % m[i] + m[i]) % m[i];
+    res = (res + 1LL * t * x) % lcm;
+  }
+  return res;
+}
+
+\end{lstlisting}
+\subsection{LinearSieve}
+\begin{lstlisting}
+const int MAXN = 1e7 + 5;
+
+bool vis[MAXN];
+int prime[MAXN / 10], prime_cnt;
+int fac[MAXN], e[MAXN], d[MAXN], mu[MAXN], phi[MAXN];
+// e 质因子最高次数， d 因数个数
+void sieve() {
+  fac[1] = 1, e[1] = 0, d[1] = 1, mu[1] = 1, phi[1] = 1;
+  for (int i = 2; i < MAXN; ++i) {
+    if (!vis[i]) {
+      prime[prime_cnt++] = i;
+      fac[i] = i, e[i] = 1, d[i] = 2, mu[i] = -1, phi[i] = i - 1;
+    }
+    for (int j = 0; j < prime_cnt; ++j) {
+      int t = prime[j] * i;
+      if (t >= MAXN) { break; }
+      vis[t] = true;
+      fac[t] = prime[j];
+      if (i % prime[j] == 0) {
+        e[t] = e[i] + 1;
+        d[t] = d[i] / (e[i] + 1) * (e[t] + 1);
+        mu[t] = 0;
+        phi[t] = phi[i] * prime[j];
+        break;
+      } else {
+        e[t] = 1;
+        d[t] = d[i] * 2;
+        mu[t] = -mu[i];
+        phi[t] = phi[i] * (prime[j] - 1);
+      }
+    }
+  }
+}
+
+\end{lstlisting}
+\subsection{LinearRecurrence}
+\begin{lstlisting}
+struct LinearRecurrence {
+  using int64 = long long;
+  using vec = std::vector<int64>;
+
+  static void extand(vec &a, size_t d, int64 value = 0) {
+    if (d <= a.size()) return;
+    a.resize(d, value);
+  }
+
+  static vec BerlekampMassey(const vec &s, int64 mod) {
+    std::function<int64(int64)> inverse = [&](int64 a) {
+      return a == 1 ? 1 : (int64)(mod - mod / a) * inverse(mod % a) % mod;
+    };
+    vec A = {1}, B = {1};
+    int64 b = s[0];
+    for (size_t i = 1, m = 1; i < s.size(); ++i, m++) {
+      int64 d = 0;
+      for (size_t j = 0; j < A.size(); ++j) { d += A[j] * s[i - j] % mod; }
+      if (!(d %= mod)) continue;
+      if (2 * (A.size() - 1) <= i) {
+        auto temp = A;
+        extand(A, B.size() + m);
+        int64 coef = d * inverse(b) % mod;
+        for (size_t j = 0; j < B.size(); ++j) {
+          A[j + m] -= coef * B[j] % mod;
+          if (A[j + m] < 0) A[j + m] += mod;
+        }
+        B = temp, b = d, m = 0;
+      } else {
+        extand(A, B.size() + m);
+        int64 coef = d * inverse(b) % mod;
+        for (size_t j = 0; j < B.size(); ++j) {
+          A[j + m] -= coef * B[j] % mod;
+          if (A[j + m] < 0) A[j + m] += mod;
+        }
+      }
+    }
+    return A;
+  }
+
+  static void exgcd(int64 a, int64 b, int64 &g, int64 &x, int64 &y) {
+    if (!b)
+      x = 1, y = 0, g = a;
+    else {
+      exgcd(b, a % b, g, y, x);
+      y -= x * (a / b);
+    }
+  }
+
+  static int64 crt(const vec &c, const vec &m) {
+    int n = c.size();
+    int64 M = 1, ans = 0;
+    for (int i = 0; i < n; ++i) M *= m[i];
+    for (int i = 0; i < n; ++i) {
+      int64 x, y, g, tm = M / m[i];
+      exgcd(tm, m[i], g, x, y);
+      ans = (ans + tm * x * c[i] % M) % M;
+    }
+    return (ans + M) % M;
+  }
+
+  static vec ReedsSloane(const vec &s, int64 mod) {
+    auto inverse = [](int64 a, int64 m) {
+      int64 d, x, y;
+      exgcd(a, m, d, x, y);
+      return d == 1 ? (x % m + m) % m : -1;
+    };
+    auto L = [](const vec &a, const vec &b) {
+      int da = (a.size() > 1 || (a.size() == 1 && a[0])) ? a.size() - 1 : -1000;
+      int db = (b.size() > 1 || (b.size() == 1 && b[0])) ? b.size() - 1 : -1000;
+      return std::max(da, db + 1);
+    };
+    auto prime_power = [&](const vec &s, int64 mod, int64 p, int64 e) {
+      // linear feedback shift register mod p^e, p is prime
+      std::vector<vec> a(e), b(e), an(e), bn(e), ao(e), bo(e);
+      vec t(e), u(e), r(e), to(e, 1), uo(e), pw(e + 1);
+      ;
+      pw[0] = 1;
+      for (int i = pw[0] = 1; i <= e; ++i) pw[i] = pw[i - 1] * p;
+      for (int64 i = 0; i < e; ++i) {
+        a[i] = {pw[i]}, an[i] = {pw[i]};
+        b[i] = {0}, bn[i] = {s[0] * pw[i] % mod};
+        t[i] = s[0] * pw[i] % mod;
+        if (t[i] == 0) {
+          t[i] = 1, u[i] = e;
+        } else {
+          for (u[i] = 0; t[i] % p == 0; t[i] /= p, ++u[i])
+            ;
+        }
+      }
+      for (size_t k = 1; k < s.size(); ++k) {
+        for (int g = 0; g < e; ++g) {
+          if (L(an[g], bn[g]) > L(a[g], b[g])) {
+            ao[g] = a[e - 1 - u[g]];
+            bo[g] = b[e - 1 - u[g]];
+            to[g] = t[e - 1 - u[g]];
+            uo[g] = u[e - 1 - u[g]];
+            r[g] = k - 1;
+          }
+        }
+        a = an, b = bn;
+        for (int o = 0; o < e; ++o) {
+          int64 d = 0;
+          for (size_t i = 0; i < a[o].size() && i <= k; ++i) {
+            d = (d + a[o][i] * s[k - i]) % mod;
+          }
+          if (d == 0) {
+            t[o] = 1, u[o] = e;
+          } else {
+            for (u[o] = 0, t[o] = d; t[o] % p == 0; t[o] /= p, ++u[o])
+              ;
+            int g = e - 1 - u[o];
+            if (L(a[g], b[g]) == 0) {
+              extand(bn[o], k + 1);
+              bn[o][k] = (bn[o][k] + d) % mod;
+            } else {
+              int64 coef =
+                  t[o] * inverse(to[g], mod) % mod * pw[u[o] - uo[g]] % mod;
+              int m = k - r[g];
+              extand(an[o], ao[g].size() + m);
+              extand(bn[o], bo[g].size() + m);
+              for (size_t i = 0; i < ao[g].size(); ++i) {
+                an[o][i + m] -= coef * ao[g][i] % mod;
+                if (an[o][i + m] < 0) an[o][i + m] += mod;
+              }
+              while (an[o].size() && an[o].back() == 0) an[o].pop_back();
+              for (size_t i = 0; i < bo[g].size(); ++i) {
+                bn[o][i + m] -= coef * bo[g][i] % mod;
+                if (bn[o][i + m] < 0) bn[o][i + m] -= mod;
+              }
+              while (bn[o].size() && bn[o].back() == 0) bn[o].pop_back();
+            }
+          }
+        }
+      }
+      return std::make_pair(an[0], bn[0]);
+    };
+
+    std::vector<std::tuple<int64, int64, int>> fac;
+    for (int64 i = 2; i * i <= mod; ++i)
+      if (mod % i == 0) {
+        int64 cnt = 0, pw = 1;
+        while (mod % i == 0) mod /= i, ++cnt, pw *= i;
+        fac.emplace_back(pw, i, cnt);
+      }
+    if (mod > 1) fac.emplace_back(mod, mod, 1);
+    std::vector<vec> as;
+    size_t n = 0;
+    for (auto &&x : fac) {
+      int64 mod, p, e;
+      vec a, b;
+      std::tie(mod, p, e) = x;
+      auto ss = s;
+      for (auto &&x : ss) x %= mod;
+      std::tie(a, b) = prime_power(ss, mod, p, e);
+      as.emplace_back(a);
+      n = std::max(n, a.size());
+    }
+    vec a(n), c(as.size()), m(as.size());
+    for (size_t i = 0; i < n; ++i) {
+      for (size_t j = 0; j < as.size(); ++j) {
+        m[j] = std::get<0>(fac[j]);
+        c[j] = i < as[j].size() ? as[j][i] : 0;
+      }
+      a[i] = crt(c, m);
+    }
+    return a;
+  }
+
+  LinearRecurrence(const vec &s, const vec &c, int64 mod)
+      : init(s), trans(c), mod(mod), m(s.size()) {}
+
+  LinearRecurrence(const vec &s, int64 mod, bool is_prime = true) : mod(mod) {
+    vec A = is_prime ? BerlekampMassey(s, mod) : ReedsSloane(s, mod);
+    if (A.empty()) A = {0};
+    m = A.size() - 1;
+    trans.resize(m);
+    for (int i = 0; i < m; ++i) { trans[i] = (mod - A[i + 1]) % mod; }
+    std::reverse(trans.begin(), trans.end());
+    init = {s.begin(), s.begin() + m};
+  }
+
+  int64 calc(int64 n) {
+    if (mod == 1) return 0;
+    if (n < m) return init[n];
+    vec v(m), u(m << 1);
+    int msk = !!n;
+    for (int64 m = n; m > 1; m >>= 1) msk <<= 1;
+    v[0] = 1 % mod;
+    for (int x = 0; msk; msk >>= 1, x <<= 1) {
+      std::fill_n(u.begin(), m * 2, 0);
+      x |= !!(n & msk);
+      if (x < m)
+        u[x] = 1 % mod;
+      else { // can be optimized by fft/ntt
+        for (int i = 0; i < m; ++i) {
+          for (int j = 0, t = i + (x & 1); j < m; ++j, ++t) {
+            u[t] = (u[t] + v[i] * v[j]) % mod;
+          }
+        }
+        for (int i = m * 2 - 1; i >= m; --i) {
+          for (int j = 0, t = i - m; j < m; ++j, ++t) {
+            u[t] = (u[t] + trans[j] * u[i]) % mod;
+          }
+        }
+      }
+      v = {u.begin(), u.begin() + m};
+    }
+    int64 ret = 0;
+    for (int i = 0; i < m; ++i) { ret = (ret + v[i] * init[i]) % mod; }
+    return ret;
+  }
+
+  vec init, trans;
+  int64 mod;
+  int m;
+};
+
+\end{lstlisting}
 
 \section{Dynamic Programming}
 
@@ -1116,100 +1116,6 @@ int main() {
 
 \section{Data Structure}
 
-\subsection{lct}
-\begin{lstlisting}
-struct LCT {
-  struct node {
-    int val, add;
-    node *fa, *ch[2];
-    void modify(const int &x) {
-      val += x;
-      add += x;
-    }
-  } node_mset[MaxS], *cnode, *null;
-  LCT() {
-    cnode = node_mset;
-    null = cnode++;
-    *null = (node){0, 0, null, {null, null}};
-  }
-  inline node *newnode() {
-    *cnode = (node){0, 0, null, {null, null}};
-    return cnode++;
-  }
-  inline bool isrt(node *u) const {
-    return (u->fa->ch[0] != u) && (u->fa->ch[1] != u);
-  }
-  inline bool which(node *u) const { return u->fa->ch[1] == u; }
-  void push_down(node *u) {
-    if (!isrt(u)) push_down(u->fa);
-    if (u->add) {
-      u->ch[0]->modify(u->add);
-      u->ch[1]->modify(u->add);
-      u->add = 0;
-    }
-  }
-  inline void rotate(node *u) {
-    node *f = u->fa;
-    int d = which(u);
-    f->ch[d] = u->ch[d ^ 1];
-    f->ch[d]->fa = f;
-    u->ch[d ^ 1] = f;
-    u->fa = f->fa;
-    if (!isrt(f)) f->fa->ch[which(f)] = u;
-    f->fa = u;
-  }
-  inline void splay(node *u) {
-    push_down(u);
-    for (node *f; !isrt(u); rotate(u))
-      if (!isrt(f = u->fa)) rotate(which(u) == which(f) ? f : u);
-  }
-  inline void access(node *x) {
-    for (node *y = null; x != null; x = x->fa) {
-      splay(x);
-      x->ch[1] = y;
-      y = x;
-    }
-  }
-  inline void cut(node *u) {
-    access(u);
-    splay(u);
-    u->ch[0]->fa = null;
-    u->ch[0] = null;
-  }
-  inline void link(node *u, node *v) {
-    cut(u);
-    u->fa = v;
-  }
-} tree;
-
-\end{lstlisting}
-\subsection{zkw}
-\begin{lstlisting}
-int tree[MAXN * 2], pre;
-
-void init(int n, int *a) {
-  memset(tree, 0, sizeof(tree));
-  for (pre = 1; pre <= n; pre <<= 1) {}
-  for (int i = 1; i <= n; ++i) tree[i + pre] = a[i];
-  for (int i = pre; i; --i) tree[i] = max(tree[i << 1], tree[i << 1 | 1]);
-}
-
-void update(int pos, const int &val) {
-  tree[pos += pre] = val;
-  for (pos >>= 1; pos; pos >>= 1)
-    tree[pos] = max(tree[pos << 1], tree[pos << 1 | 1]);
-}
-
-int query(int s, int t) {
-  int res = 0;
-  for (s += pre - 1, t += pre + 1; s ^ t ^ 1; s >>= 1, t >>= 1) {
-    if (~s & 1) res = max(res, tree[s ^ 1]);
-    if (t & 1) res = max(res, tree[t ^ 1]);
-  }
-  return res;
-}
-
-\end{lstlisting}
 \subsection{splay}
 \begin{lstlisting}
 #include <algorithm>
@@ -1381,6 +1287,73 @@ int main() {
 
   return 0;
 }
+
+\end{lstlisting}
+\subsection{lct}
+\begin{lstlisting}
+struct LCT {
+  struct node {
+    int val, add;
+    node *fa, *ch[2];
+    void modify(const int &x) {
+      val += x;
+      add += x;
+    }
+  } node_mset[MaxS], *cnode, *null;
+  LCT() {
+    cnode = node_mset;
+    null = cnode++;
+    *null = (node){0, 0, null, {null, null}};
+  }
+  inline node *newnode() {
+    *cnode = (node){0, 0, null, {null, null}};
+    return cnode++;
+  }
+  inline bool isrt(node *u) const {
+    return (u->fa->ch[0] != u) && (u->fa->ch[1] != u);
+  }
+  inline bool which(node *u) const { return u->fa->ch[1] == u; }
+  void push_down(node *u) {
+    if (!isrt(u)) push_down(u->fa);
+    if (u->add) {
+      u->ch[0]->modify(u->add);
+      u->ch[1]->modify(u->add);
+      u->add = 0;
+    }
+  }
+  inline void rotate(node *u) {
+    node *f = u->fa;
+    int d = which(u);
+    f->ch[d] = u->ch[d ^ 1];
+    f->ch[d]->fa = f;
+    u->ch[d ^ 1] = f;
+    u->fa = f->fa;
+    if (!isrt(f)) f->fa->ch[which(f)] = u;
+    f->fa = u;
+  }
+  inline void splay(node *u) {
+    push_down(u);
+    for (node *f; !isrt(u); rotate(u))
+      if (!isrt(f = u->fa)) rotate(which(u) == which(f) ? f : u);
+  }
+  inline void access(node *x) {
+    for (node *y = null; x != null; x = x->fa) {
+      splay(x);
+      x->ch[1] = y;
+      y = x;
+    }
+  }
+  inline void cut(node *u) {
+    access(u);
+    splay(u);
+    u->ch[0]->fa = null;
+    u->ch[0] = null;
+  }
+  inline void link(node *u, node *v) {
+    cut(u);
+    u->fa = v;
+  }
+} tree;
 
 \end{lstlisting}
 \subsection{kdtree}
@@ -1597,166 +1570,54 @@ inline void kd_quy(D *u, const int &x, const int &y) {
 }
 
 \end{lstlisting}
+\subsection{zkw}
+\begin{lstlisting}
+int tree[MAXN * 2], pre;
+
+void init(int n, int *a) {
+  memset(tree, 0, sizeof(tree));
+  for (pre = 1; pre <= n; pre <<= 1) {}
+  for (int i = 1; i <= n; ++i) tree[i + pre] = a[i];
+  for (int i = pre; i; --i) tree[i] = max(tree[i << 1], tree[i << 1 | 1]);
+}
+
+void update(int pos, const int &val) {
+  tree[pos += pre] = val;
+  for (pos >>= 1; pos; pos >>= 1)
+    tree[pos] = max(tree[pos << 1], tree[pos << 1 | 1]);
+}
+
+int query(int s, int t) {
+  int res = 0;
+  for (s += pre - 1, t += pre + 1; s ^ t ^ 1; s >>= 1, t >>= 1) {
+    if (~s & 1) res = max(res, tree[s ^ 1]);
+    if (t & 1) res = max(res, tree[t ^ 1]);
+  }
+  return res;
+}
+
+\end{lstlisting}
 
 \section{String}
 
-\subsection{da}
+\subsection{mancher}
 \begin{lstlisting}
-char s[MAXN];
-int sa[MAXN], x[MAXN], y[MAXN], c[MAXN];
-int rk[MAXN], height[MAXN], st[17][MAXN], lg[MAXN];
-
-bool cmp(int *r, int i, int j, int l) {
-  return r[i] == r[j] && r[i + l] == r[j + l];
-}
-void da(char *s, int n, int m) {
-  int i, j, p;
-  for (i = 0; i < m; ++i) c[i] = 0;
-  for (i = 0; i < n; ++i) ++c[x[i] = s[i]];
-  for (i = 1; i < m; ++i) c[i] += c[i - 1];
-  for (i = n - 1; ~i; --i) sa[--c[x[i]]] = i;
-  for (p = j = 1; p < n; j <<= 1, m = p) {
-    for (p = 0, i = n - j; i < n; ++i) y[p++] = i;
-    for (i = 0; i < n; ++i)
-      if (sa[i] >= j) y[p++] = sa[i] - j;
-    for (i = 0; i < m; ++i) c[i] = 0;
-    for (i = 0; i < n; ++i) ++c[x[y[i]]];
-    for (i = 1; i < m; ++i) c[i] += c[i - 1];
-    for (i = n - 1; ~i; --i) sa[--c[x[y[i]]]] = y[i];
-    for (swap(x, y), p = 1, x[sa[0]] = 0, i = 1; i < n; ++i)
-      x[sa[i]] = cmp(y, sa[i], sa[i - 1], j) ? p - 1 : p++;
+void mancher(char *s, int n) {
+  str[0] = '~';
+  str[1] = '!';
+  for (int i = 1; i <= n; ++i) {
+    str[i * 2] = s[i];
+    str[i * 2 + 1] = '!';
   }
-}
-
-void get_height(char *s, int n) {
-  int i, j, k;
-  for (i = 0; i < n; ++i) rk[sa[i]] = i;
-  for (i = k = height[rk[0]] = 0; i < n; height[rk[i++]] = k)
-    if (rk[i])
-      for (k > 0 ? --k : 0, j = sa[rk[i] - 1]; s[i + k] == s[j + k]; ++k) {}
-}
-
-void init_st_table(int n) {
-  int lgn = lg[n];
-  for (int i = 0; i < n; ++i) st[0][i] = height[i];
-  for (int i = 1; i <= lgn; ++i)
-    for (int j = 0; j + (1 << i - 1) < n; ++j)
-      st[i][j] = min(st[i - 1][j], st[i - 1][j + (1 << i - 1)]);
-}
-
-int lcp(int i, int j) {
-  if (i > j) swap(i, j);
-  ++i;
-  int lgl = lg[j - i + 1];
-  return min(st[lgl][i], st[lgl][j - (1 << lgl) + 1]);
-}
-
-\end{lstlisting}
-\subsection{exkmp}
-\begin{lstlisting}
-// next[i]:x[i...m-1] 与 x[0...m-1] 的最长公共前缀
-// extend[i]:y[i...n-1] 与 x[0...m-1] 的最长公共前缀
-void prework(char x[], int m, int next[]) {
-  next[0] = m;
-  int j = 0;
-  while (j + 1 < m && x[j] == x[j + 1]) ++j;
-  next[1] = j;
-  int k = 1;
-  for (int i = 2; i < m; ++i) {
-    int p = next[k] + k − 1;
-    int L = next[i − k];
-    if (i + L < p + 1)
-      next[i] = L;
-    else {
-      j = max(0, p − i + 1);
-      while (i + j < m && x[i + j] == x[j]) j++;
-      next[i] = j;
-      k = i;
+  for (int i = 1, j = 0; i <= n; ++i) {
+    if (p[j] + j > i) {
+      p[i] = min(p[2 * j - i], p[j] + j - i);
+    } else {
+      p[i] = 1;
     }
+    while (str[i + p[i]] == str[i - p[i]]) { ++p[i]; }
+    if (i + p[i] > j + p[j]) { j = i; }
   }
-}
-void exkmp(char x[], int m, char y[], int n, int next[], int extend[]) {
-  prework(x, m, next);
-  int j = 0;
-  while (j < n && j < m && x[j] == y[j]) ++j;
-  extend[0] = j;
-  int k = 0;
-  for (int i = 1; i < n; ++i) {
-    int p = extend[k] + k − 1;
-    int L = next[i − k];
-    if (i + L < p + 1)
-      extend[i] = L;
-    else {
-      j = max(0, p − i + 1);
-      while (i + j < n && j < m && y[i + j] == x[j]) j++;
-      extend[i] = j;
-      k = i;
-    }
-  }
-}
-
-\end{lstlisting}
-\subsection{回文树}
-\begin{lstlisting}
-//最长双回文串
-struct PT {
-  char s[MAXL];
-  int fail[MAXL], ch[26][MAXL], l[MAXL], dep[MAXL], lst, nc, n;
-  void init() {
-    l[0] = 0;
-    l[1] = -1;
-    fail[0] = fail[1] = 1;
-    for (int i = 0; i < 26; ++i) {
-      for (int j = 0; j < nc; ++j) { ch[i][j] = 0; }
-    }
-    for (int i = 2; i < nc; ++i) {
-      l[i] = 0;
-      fail[i] = 0;
-    }
-
-    lst = 0;
-    nc = 2;
-    n = 0;
-    s[0] = '#';
-  }
-
-  int insert(char c) {
-    int id = c - 'a';
-    s[++n] = c;
-    while (s[n - l[lst] - 1] != s[n]) { lst = fail[lst]; }
-    if (ch[id][lst] == 0) {
-      l[nc] = l[lst] + 2;
-      int f = fail[lst];
-      while (s[n - l[f] - 1] != s[n]) { f = fail[f]; }
-      fail[nc] = ch[id][f];
-      dep[nc] = dep[fail[nc]] + 1;
-      ch[id][lst] = nc;
-      ++nc;
-    }
-    lst = ch[id][lst];
-    return lst;
-  }
-} pt;
-
-char S[MAXL];
-int len[MAXL];
-int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(0);
-  cout.tie(0);
-
-  cin >> S;
-  int n = strlen(S);
-  pt.init();
-  for (int i = 0; i < n; ++i) { len[i] = pt.l[pt.insert(S[i])]; }
-  pt.init();
-  int ans = 0;
-  for (int i = n - 1; i; --i) {
-    ans = max(ans, len[i - 1] + pt.l[pt.insert(S[i])]);
-  }
-  cout << ans << "\n";
-
-  return 0;
 }
 
 \end{lstlisting}
@@ -1829,24 +1690,55 @@ void build_acam() {
 }
 
 \end{lstlisting}
-\subsection{mancher}
+\subsection{da}
 \begin{lstlisting}
-void mancher(char *s, int n) {
-  str[0] = '~';
-  str[1] = '!';
-  for (int i = 1; i <= n; ++i) {
-    str[i * 2] = s[i];
-    str[i * 2 + 1] = '!';
+char s[MAXN];
+int sa[MAXN], x[MAXN], y[MAXN], c[MAXN];
+int rk[MAXN], height[MAXN], st[17][MAXN], lg[MAXN];
+
+bool cmp(int *r, int i, int j, int l) {
+  return r[i] == r[j] && r[i + l] == r[j + l];
+}
+void da(char *s, int n, int m) {
+  int i, j, p;
+  for (i = 0; i < m; ++i) c[i] = 0;
+  for (i = 0; i < n; ++i) ++c[x[i] = s[i]];
+  for (i = 1; i < m; ++i) c[i] += c[i - 1];
+  for (i = n - 1; ~i; --i) sa[--c[x[i]]] = i;
+  for (p = j = 1; p < n; j <<= 1, m = p) {
+    for (p = 0, i = n - j; i < n; ++i) y[p++] = i;
+    for (i = 0; i < n; ++i)
+      if (sa[i] >= j) y[p++] = sa[i] - j;
+    for (i = 0; i < m; ++i) c[i] = 0;
+    for (i = 0; i < n; ++i) ++c[x[y[i]]];
+    for (i = 1; i < m; ++i) c[i] += c[i - 1];
+    for (i = n - 1; ~i; --i) sa[--c[x[y[i]]]] = y[i];
+    for (swap(x, y), p = 1, x[sa[0]] = 0, i = 1; i < n; ++i)
+      x[sa[i]] = cmp(y, sa[i], sa[i - 1], j) ? p - 1 : p++;
   }
-  for (int i = 1, j = 0; i <= n; ++i) {
-    if (p[j] + j > i) {
-      p[i] = min(p[2 * j - i], p[j] + j - i);
-    } else {
-      p[i] = 1;
-    }
-    while (str[i + p[i]] == str[i - p[i]]) { ++p[i]; }
-    if (i + p[i] > j + p[j]) { j = i; }
-  }
+}
+
+void get_height(char *s, int n) {
+  int i, j, k;
+  for (i = 0; i < n; ++i) rk[sa[i]] = i;
+  for (i = k = height[rk[0]] = 0; i < n; height[rk[i++]] = k)
+    if (rk[i])
+      for (k > 0 ? --k : 0, j = sa[rk[i] - 1]; s[i + k] == s[j + k]; ++k) {}
+}
+
+void init_st_table(int n) {
+  int lgn = lg[n];
+  for (int i = 0; i < n; ++i) st[0][i] = height[i];
+  for (int i = 1; i <= lgn; ++i)
+    for (int j = 0; j + (1 << i - 1) < n; ++j)
+      st[i][j] = min(st[i - 1][j], st[i - 1][j + (1 << i - 1)]);
+}
+
+int lcp(int i, int j) {
+  if (i > j) swap(i, j);
+  ++i;
+  int lgl = lg[j - i + 1];
+  return min(st[lgl][i], st[lgl][j - (1 << lgl) + 1]);
 }
 
 \end{lstlisting}
@@ -1872,6 +1764,50 @@ int pattern(char *S, char *T, int *nxt, int n, int m) {
 }
 
 \end{lstlisting}
+\subsection{exkmp}
+\begin{lstlisting}
+// next[i]:x[i...m-1] 与 x[0...m-1] 的最长公共前缀
+// extend[i]:y[i...n-1] 与 x[0...m-1] 的最长公共前缀
+void prework(char x[], int m, int next[]) {
+  next[0] = m;
+  int j = 0;
+  while (j + 1 < m && x[j] == x[j + 1]) ++j;
+  next[1] = j;
+  int k = 1;
+  for (int i = 2; i < m; ++i) {
+    int p = next[k] + k − 1;
+    int L = next[i − k];
+    if (i + L < p + 1)
+      next[i] = L;
+    else {
+      j = max(0, p − i + 1);
+      while (i + j < m && x[i + j] == x[j]) j++;
+      next[i] = j;
+      k = i;
+    }
+  }
+}
+void exkmp(char x[], int m, char y[], int n, int next[], int extend[]) {
+  prework(x, m, next);
+  int j = 0;
+  while (j < n && j < m && x[j] == y[j]) ++j;
+  extend[0] = j;
+  int k = 0;
+  for (int i = 1; i < n; ++i) {
+    int p = extend[k] + k − 1;
+    int L = next[i − k];
+    if (i + L < p + 1)
+      extend[i] = L;
+    else {
+      j = max(0, p − i + 1);
+      while (i + j < n && j < m && y[i + j] == x[j]) j++;
+      extend[i] = j;
+      k = i;
+    }
+  }
+}
+
+\end{lstlisting}
 \subsection{hash}
 \begin{lstlisting}
 
@@ -1893,80 +1829,73 @@ void init(char *s, int n) {
 }
 
 \end{lstlisting}
+\subsection{回文树}
+\begin{lstlisting}
+//最长双回文串
+struct PT {
+  char s[MAXL];
+  int fail[MAXL], ch[26][MAXL], l[MAXL], dep[MAXL], lst, nc, n;
+  void init() {
+    l[0] = 0;
+    l[1] = -1;
+    fail[0] = fail[1] = 1;
+    for (int i = 0; i < 26; ++i) {
+      for (int j = 0; j < nc; ++j) { ch[i][j] = 0; }
+    }
+    for (int i = 2; i < nc; ++i) {
+      l[i] = 0;
+      fail[i] = 0;
+    }
+
+    lst = 0;
+    nc = 2;
+    n = 0;
+    s[0] = '#';
+  }
+
+  int insert(char c) {
+    int id = c - 'a';
+    s[++n] = c;
+    while (s[n - l[lst] - 1] != s[n]) { lst = fail[lst]; }
+    if (ch[id][lst] == 0) {
+      l[nc] = l[lst] + 2;
+      int f = fail[lst];
+      while (s[n - l[f] - 1] != s[n]) { f = fail[f]; }
+      fail[nc] = ch[id][f];
+      dep[nc] = dep[fail[nc]] + 1;
+      ch[id][lst] = nc;
+      ++nc;
+    }
+    lst = ch[id][lst];
+    return lst;
+  }
+} pt;
+
+char S[MAXL];
+int len[MAXL];
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(0);
+  cout.tie(0);
+
+  cin >> S;
+  int n = strlen(S);
+  pt.init();
+  for (int i = 0; i < n; ++i) { len[i] = pt.l[pt.insert(S[i])]; }
+  pt.init();
+  int ans = 0;
+  for (int i = n - 1; i; --i) {
+    ans = max(ans, len[i - 1] + pt.l[pt.insert(S[i])]);
+  }
+  cout << ans << "\n";
+
+  return 0;
+}
+
+\end{lstlisting}
 
 \section{Graph Theory}
 
-\subsection{sap}
-\begin{lstlisting}
-struct MF {
-  struct Edge {
-    int to, cap, flow;
-  } edges[MAXM * 4];
-
-  vector<int> adj[MAXN];
-  int n, edges_c, dep[MAXN], depc[MAXN], s, t, last[MAXN];
-
-  void init(int _n) {
-    n = _n;
-    for (int i = 1; i <= n; ++i) adj[i].clear();
-    edges_c = 0;
-  }
-
-  void add_edge(int v, int u, int cap) {
-    edges[edges_c] = {v, cap, 0};
-    adj[u].push_back(edges_c++);
-    edges[edges_c] = {u, 0, 0};
-    adj[v].push_back(edges_c++);
-  }
-
-  int dfs(int u, int flow) {
-    if (u == t || !flow) return flow;
-    int v, e, temp, res = 0;
-    for (int &i = last[u]; i < (int)adj[u].size(); ++i) {
-      e = adj[u][i];
-      v = edges[e].to;
-      if (edges[e].cap == edges[e].flow) continue;
-      if (dep[v] != dep[u] - 1) continue;
-      temp = dfs(v, min(flow, edges[e].cap - edges[e].flow));
-      edges[e].flow += temp, edges[e ^ 1].flow -= temp;
-      res += temp, flow -= temp;
-      if (!flow) return res;
-      if (!dep[s]) return res;
-    }
-    last[u] = 0;
-    if (!(--depc[dep[u]])) dep[s] = n + 1;
-    ++depc[++dep[u]];
-    return res;
-  }
-  int max_flow(int s, int t) {
-    this->s = s, this->t = t;
-
-    static queue<int> que;
-    memset(dep + 1, 0, sizeof(int) * n);
-    memset(depc + 1, 0, sizeof(int) * n);
-    memset(last + 1, 0, sizeof(int) * n);
-    while (!que.empty()) que.pop();
-    dep[t] = 1, que.push(t);
-
-    while (!que.empty()) {
-      int u = que.front();
-      que.pop();
-      ++depc[dep[u]];
-      for (int i = 0, v; i < (int)adj[u].size(); ++i) {
-        v = edges[adj[u][i]].to;
-        if (dep[v]) continue;
-        dep[v] = dep[u] + 1;
-        que.push(v);
-      }
-    }
-
-    int res = 0;
-    while (dep[s] <= n) res += dfs(s, INT_MAX);
-    return res;
-  }
-};
-
-\end{lstlisting}
 \subsection{上下界费用流}
 \begin{lstlisting}
 #include <bits/stdc++.h>
@@ -2135,9 +2064,174 @@ void tarjan(int u) {
 }
 
 \end{lstlisting}
+\subsection{一般图最大匹配}
+\begin{lstlisting}
+class GeneralMatch {
+public:
+  int n;
+  vector<vector<int>> g;
+  vector<int> match, aux, label, orig, parent;
+  queue<int> q;
+  int aux_time;
 
-\section{Computational Geometry}
+  GeneralMatch(int n)
+      : match(n, -1), aux(n, -1), label(n), orig(n), parent(n, -1),
+        aux_time(-1) {
+    this->n = n;
+    g.resize(n);
+  }
 
+  void add_edge(int u, int v) {
+    g[u].push_back(v);
+    g[v].push_back(u);
+  }
+
+  int find(int x) { return x == orig[x] ? x : orig[x] = find(orig[x]); }
+
+  int lca(int u, int v) {
+    ++aux_time;
+    u = find(u), v = find(v);
+    for (;; swap(u, v)) {
+      if (~u) {
+        if (aux[u] == aux_time) return u;
+        aux[u] = aux_time;
+        if (match[u] == -1) {
+          u = -1;
+        } else {
+          u = find(parent[match[u]]);
+        }
+      }
+    }
+  }
+
+  void blossom(int u, int v, int o) {
+    while (find(u) != o) {
+      parent[u] = v;
+      v = match[u];
+      q.push(v);
+      label[v] = 0;
+      orig[u] = orig[v] = o;
+      u = parent[v];
+    }
+  }
+
+  int bfs(int x) {
+    iota(orig.begin(), orig.end(), 0);
+    fill(label.begin(), label.end(), -1);
+    while (!q.empty()) q.pop();
+    q.push(x);
+    label[x] = 0;
+    while (!q.empty()) {
+      int u = q.front();
+      q.pop();
+      for (int v : g[u]) {
+        if (label[v] == -1) {
+          parent[v] = u;
+          label[v] = 1;
+          if (match[v] == -1) {
+            while (v != -1) {
+              int pv = parent[v];
+              int next_v = match[pv];
+              match[v] = pv;
+              match[pv] = v;
+              v = next_v;
+            }
+            return 1;
+          }
+          q.push(match[v]);
+          label[match[v]] = 0;
+        } else if (label[v] == 0 && find(u) != find(v)) {
+          int o = lca(u, v);
+          blossom(u, v, o);
+          blossom(v, u, o);
+        }
+      }
+    }
+    return 0;
+  }
+
+  int find_max_match() {
+    int res = 0;
+    for (int i = 0; i < n; ++i) {
+      if (~match[i]) continue;
+      res += bfs(i);
+    }
+    return res;
+  }
+};
+
+\end{lstlisting}
+\subsection{sap}
+\begin{lstlisting}
+struct MF {
+  struct Edge {
+    int to, cap, flow;
+  } edges[MAXM * 4];
+
+  vector<int> adj[MAXN];
+  int n, edges_c, dep[MAXN], depc[MAXN], s, t, last[MAXN];
+
+  void init(int _n) {
+    n = _n;
+    for (int i = 1; i <= n; ++i) adj[i].clear();
+    edges_c = 0;
+  }
+
+  void add_edge(int v, int u, int cap) {
+    edges[edges_c] = {v, cap, 0};
+    adj[u].push_back(edges_c++);
+    edges[edges_c] = {u, 0, 0};
+    adj[v].push_back(edges_c++);
+  }
+
+  int dfs(int u, int flow) {
+    if (u == t || !flow) return flow;
+    int v, e, temp, res = 0;
+    for (int &i = last[u]; i < (int)adj[u].size(); ++i) {
+      e = adj[u][i];
+      v = edges[e].to;
+      if (edges[e].cap == edges[e].flow) continue;
+      if (dep[v] != dep[u] - 1) continue;
+      temp = dfs(v, min(flow, edges[e].cap - edges[e].flow));
+      edges[e].flow += temp, edges[e ^ 1].flow -= temp;
+      res += temp, flow -= temp;
+      if (!flow) return res;
+      if (!dep[s]) return res;
+    }
+    last[u] = 0;
+    if (!(--depc[dep[u]])) dep[s] = n + 1;
+    ++depc[++dep[u]];
+    return res;
+  }
+  int max_flow(int s, int t) {
+    this->s = s, this->t = t;
+
+    static queue<int> que;
+    memset(dep + 1, 0, sizeof(int) * n);
+    memset(depc + 1, 0, sizeof(int) * n);
+    memset(last + 1, 0, sizeof(int) * n);
+    while (!que.empty()) que.pop();
+    dep[t] = 1, que.push(t);
+
+    while (!que.empty()) {
+      int u = que.front();
+      que.pop();
+      ++depc[dep[u]];
+      for (int i = 0, v; i < (int)adj[u].size(); ++i) {
+        v = edges[adj[u][i]].to;
+        if (dep[v]) continue;
+        dep[v] = dep[u] + 1;
+        que.push(v);
+      }
+    }
+
+    int res = 0;
+    while (dep[s] <= n) res += dfs(s, INT_MAX);
+    return res;
+  }
+};
+
+\end{lstlisting}
 
 \section{Java}
 
@@ -2227,6 +2321,43 @@ public class Main {
 
 \section{Others}
 
+\subsection{myalloc}
+\begin{lstlisting}
+// useage: vector<int, myalloc<int>> L;
+static char space[10000000], *sp = space;
+template <typename T> struct myalloc : allocator<T> {
+  myalloc() {}
+  template <typename T2> myalloc(const myalloc<T2> &a) {}
+  template <typename T2> myalloc<T> &operator=(const myalloc<T2> &a) {
+    return *this;
+  }
+  template <typename T2> struct rebind { typedef myalloc<T2> other; };
+  inline T *allocate(size_t n) {
+    T *result = (T *)sp;
+    sp += n * sizeof(T);
+    return result;
+  }
+  inline void deallocate(T *p, size_t n) {}
+};
+
+\end{lstlisting}
+\subsection{duipai}
+\begin{lstlisting}
+#/usr/bin/bash
+
+while true; do
+  python gen.py > in.txt
+  time ./my < in.txt > out.txt
+  time ./std < in.txt > ans.txt
+  if diff out.txt ans.txt; then
+    echo AC
+  else
+    echo WA
+    exit 0
+  fi
+done
+
+\end{lstlisting}
 \subsection{vimrc}
 \begin{lstlisting}
 syntax enable
@@ -2260,6 +2391,28 @@ map <F9> : call DeBug() <CR>
 func DeBug()
 	exec "!gdb %<"
 endfunc
+
+\end{lstlisting}
+\subsection{emacs}
+\begin{lstlisting}
+(defun comp ()
+  (interactive)
+  (save-some-buffers t)
+  (setq filename (file-name-nondirectory buffer-file-name))
+  (setq progname (file-name-sans-extension filename))
+  (setq suffix (file-name-extension filename))
+  (compile (concat "g++ " filename " -o " progname " -O2 -Wall -Werror")))
+(add-hook 'c++-mode
+          '(lambda ()
+             (c-set-style "K&R")
+             (setq tab-width 2)
+             (setq indent-tabs-mode nil)
+             (setq c-basic-offset 2)))
+(global-set-key [f5] 'comp)
+
+(ido-mode t)
+(delete-selection-mode t)
+(global-auto-revert-mode t)
 
 \end{lstlisting}
 \subsection{FastIO}
@@ -2353,65 +2506,6 @@ struct FastIO {
   inline operator bool() { return b; }
 };
 } // namespace FastIO
-
-\end{lstlisting}
-\subsection{myalloc}
-\begin{lstlisting}
-// useage: vector<int, myalloc<int>> L;
-static char space[10000000], *sp = space;
-template <typename T> struct myalloc : allocator<T> {
-  myalloc() {}
-  template <typename T2> myalloc(const myalloc<T2> &a) {}
-  template <typename T2> myalloc<T> &operator=(const myalloc<T2> &a) {
-    return *this;
-  }
-  template <typename T2> struct rebind { typedef myalloc<T2> other; };
-  inline T *allocate(size_t n) {
-    T *result = (T *)sp;
-    sp += n * sizeof(T);
-    return result;
-  }
-  inline void deallocate(T *p, size_t n) {}
-};
-
-\end{lstlisting}
-\subsection{duipai}
-\begin{lstlisting}
-#/usr/bin/bash
-
-while true; do
-  python gen.py > in.txt
-  time ./my < in.txt > out.txt
-  time ./std < in.txt > ans.txt
-  if diff out.txt ans.txt; then
-    echo AC
-  else
-    echo WA
-    exit 0
-  fi
-done
-
-\end{lstlisting}
-\subsection{emacs}
-\begin{lstlisting}
-(defun comp ()
-  (interactive)
-  (save-some-buffers t)
-  (setq filename (file-name-nondirectory buffer-file-name))
-  (setq progname (file-name-sans-extension filename))
-  (setq suffix (file-name-extension filename))
-  (compile (concat "g++ " filename " -o " progname " -O2 -Wall -Werror")))
-(add-hook 'c++-mode
-          '(lambda ()
-             (c-set-style "K&R")
-             (setq tab-width 2)
-             (setq indent-tabs-mode nil)
-             (setq c-basic-offset 2)))
-(global-set-key [f5] 'comp)
-
-(ido-mode t)
-(delete-selection-mode t)
-(global-auto-revert-mode t)
 
 \end{lstlisting}
 
