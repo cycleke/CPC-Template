@@ -4,7 +4,7 @@
   (setq filename (file-name-nondirectory buffer-file-name))
   (setq progname (file-name-sans-extension filename))
   (setq suffix (file-name-extension filename))
-  (compile (concat "g++ " filename " -o " progname " -O2 -Wall -Werror")))
+  (compile (concat "g++ " filename " -o " progname " -std=gnu++14 -O2 -Wall -Werror")))
 (add-hook 'c++-mode
           '(lambda ()
              (c-set-style "K&R")

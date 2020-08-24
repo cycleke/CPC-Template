@@ -10,14 +10,14 @@ set noeb
 set tabstop=2
 set softtabstop=2
 set shiftwidth=2
-set expandtab 
+set expandtab
 
 :imap jk <Esc>
 
 map <F5> : call Complie() <CR>
 func Complie()
 	exec "w"
-	exec "!g++ % -o %< -g -Wall -std=gnu++17 -static"
+	exec "!g++ % -o %< -g -Wall -std=gnu++14 -static"
 endfunc
 
 map <F6> : call Run() <CR>
