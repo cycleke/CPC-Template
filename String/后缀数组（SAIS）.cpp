@@ -1,4 +1,4 @@
-// UOJ 模板题
+// UOJ 模板题，最快算法
 // 字符串必须为正数，BUFFER_SIZE 要随 MAX_LENGTH 同步变化，1e6为25
 #include <bits/stdc++.h>
 

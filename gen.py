@@ -10,7 +10,7 @@ def gen_section(section, path):
         '.sh' : '[language=bash]',
         '.java' : '[language=java,tabsize=4]',
     }
-    for source in os.listdir(path):
+    for source in sorted(os.listdir(path)):
         file_name, extension = os.path.splitext(source)
         try:
             tex += r'\subsection{%s}' % (file_name) + '\n'
