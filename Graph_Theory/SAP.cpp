@@ -1,18 +1,17 @@
 struct MF {
   struct Edge {
-    int to, cap, flow;
+    int to, rest;
   } edges[MAXM * 4];
 
   vector<int> adj[MAXN];
   int n, edges_c, dep[MAXN], depc[MAXN], s, t, last[MAXN];
 
   void init(int _n) {
-    n = _n;
+    n = _n, edges_c = 0;
     for (int i = 1; i <= n; ++i) adj[i].clear();
-    edges_c = 0;
   }
 
-  void add_edge(int v, int u, int cap) {
+  void add_edge(int u, int v, int cap) {
     edges[edges_c] = {v, cap, 0};
     adj[u].push_back(edges_c++);
     edges[edges_c] = {u, 0, 0};
@@ -23,15 +22,12 @@ struct MF {
     if (u == t || !flow) return flow;
     int v, e, temp, res = 0;
     for (int &i = last[u]; i < (int)adj[u].size(); ++i) {
-      e = adj[u][i];
-      v = edges[e].to;
-      if (edges[e].cap == edges[e].flow) continue;
-      if (dep[v] != dep[u] - 1) continue;
+      e = adj[u][i], v = edges[e].to;
+      if (!edges[e].res || dep[v] != dep[u] - 1) continue;
       temp = dfs(v, min(flow, edges[e].cap - edges[e].flow));
-      edges[e].flow += temp, edges[e ^ 1].flow -= temp;
       res += temp, flow -= temp;
-      if (!flow) return res;
-      if (!dep[s]) return res;
+      edges[e].rest -= temp, edges[e ^ 1].rest += temp;
+      if (!flow || !dep[s]) return res;
     }
     last[u] = 0;
     if (!(--depc[dep[u]])) dep[s] = n + 1;
