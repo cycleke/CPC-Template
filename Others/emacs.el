@@ -6,7 +6,7 @@
   (c-toggle-hungry-state)
   (defun compile-and-run()
     (interactive)
-    (defvar file-name (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
+    (let (file-name (file-name-sans-extension (file-name-nondirectory buffer-file-name))))
     (compile
      (format "g++ %s.cpp -o %s -Wall -Wextra -Wshadow -O2 && %s.exe"
              file-name file-name file-name)))

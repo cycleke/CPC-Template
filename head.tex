@@ -2,23 +2,20 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{fancyhdr}
+\usepackage{float}
 \usepackage{fontenc}
+\usepackage{graphicx}
 \usepackage{geometry}
 \usepackage[colorlinks,linkcolor=black]{hyperref}
 \usepackage{listings}
+\usepackage{subfig}
 \usepackage{xcolor}
 \usepackage{xeCJK}
 
-\xeCJKsetemboldenfactor{1}
-\setCJKfamilyfont{hei}{SimHei}
 \xeCJKsetemboldenfactor{4}
-\setCJKfamilyfont{song}{SimSun}
-\xeCJKsetemboldenfactor{4}
-\setCJKfamilyfont{fs}{FangSong}
-\setCJKfamilyfont{kai}{KaiTi}
-\setCJKfamilyfont{li}{LiSu}
-\setCJKfamilyfont{xw}{STXinwei}
-\setCJKmainfont{SimSun}
+\setCJKmainfont[BoldFont=仓耳云黑 W05]{仓耳今楷05-6763}
+\setCJKmonofont{仓耳今楷05-6763}
+\setCJKsansfont{仓耳今楷05-6763}
 \setsansfont{SF Pro Display}
 \setmainfont{Serif UI Display}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
@@ -38,24 +35,36 @@
   showstringspaces = false,
 }
 
-\title{XCPC Template Manaual}
+\title{cycleke（菜鸡）的 XPCP 模板}
 \author{cycleke}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[C]{XCPC Template Manaual, cycleke}
-\begin{document}\small
+\fancyhead[C]{XPCP 模板, cycleke}
+\begin{document}
 \begin{titlepage}
   \begin{center}
-    \HRule \\ [1cm]
-    \textbf{\Huge{XCPC Template Manaual}} \\ [0.5cm]
-    \HRule \\ [4cm]
-    \textbf{\Huge{Harbin Institute of Technology}} \\ [1cm]
-    \LARGE{cycleke}
+    \HRule{} \\ [1cm]
+    \textbf{\Huge{cycleke（菜鸡）的 XPCP 模板}} \\ [0.5cm]
+    \HRule{} \\ [4cm]
+
     \vfill
+    \begin{figure}[H]
+      \centering
+      \subfloat{
+        \includegraphics[width=0.8\linewidth]{icpc-logo}
+      } \quad
+      \subfloat{
+        \includegraphics[width=0.15\linewidth]{ccpc-logo}
+      }
+    \end{figure}
+    % \textbf{\Huge{Harbin Institute of Technology}}
+    \includegraphics[width=.55\linewidth]{school} \\ [2cm]
+    \LARGE{cycleke} \\ [1cm]
     \Large{\today}
   \end{center}
   \clearpage
 \end{titlepage}
+
 \tableofcontents\clearpage
 \pagestyle{fancy}
 \lfoot{}
@@ -64,6 +73,6 @@
 \setcounter{page}{1}
 \clearpage
 
-%s
+#SECTION_CODE
 
 \end{document}

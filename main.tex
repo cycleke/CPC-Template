@@ -2,23 +2,20 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{fancyhdr}
+\usepackage{float}
 \usepackage{fontenc}
+\usepackage{graphicx}
 \usepackage{geometry}
 \usepackage[colorlinks,linkcolor=black]{hyperref}
 \usepackage{listings}
+\usepackage{subfig}
 \usepackage{xcolor}
 \usepackage{xeCJK}
 
-\xeCJKsetemboldenfactor{1}
-\setCJKfamilyfont{hei}{SimHei}
 \xeCJKsetemboldenfactor{4}
-\setCJKfamilyfont{song}{SimSun}
-\xeCJKsetemboldenfactor{4}
-\setCJKfamilyfont{fs}{FangSong}
-\setCJKfamilyfont{kai}{KaiTi}
-\setCJKfamilyfont{li}{LiSu}
-\setCJKfamilyfont{xw}{STXinwei}
-\setCJKmainfont{SimSun}
+\setCJKmainfont[BoldFont=仓耳云黑 W05]{仓耳今楷05-6763}
+\setCJKmonofont{仓耳今楷05-6763}
+\setCJKsansfont{仓耳今楷05-6763}
 \setsansfont{SF Pro Display}
 \setmainfont{Serif UI Display}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
@@ -38,24 +35,36 @@
   showstringspaces = false,
 }
 
-\title{XCPC Template Manaual}
+\title{cycleke（菜鸡）的 XPCP 模板}
 \author{cycleke}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[C]{XCPC Template Manaual, cycleke}
-\begin{document}\small
+\fancyhead[C]{XPCP 模板, cycleke}
+\begin{document}
 \begin{titlepage}
   \begin{center}
-    \HRule \\ [1cm]
-    \textbf{\Huge{XCPC Template Manaual}} \\ [0.5cm]
-    \HRule \\ [4cm]
-    \textbf{\Huge{Harbin Institute of Technology}} \\ [1cm]
-    \LARGE{cycleke}
+    \HRule{} \\ [1cm]
+    \textbf{\Huge{cycleke（菜鸡）的 XPCP 模板}} \\ [0.5cm]
+    \HRule{} \\ [4cm]
+
     \vfill
+    \begin{figure}[H]
+      \centering
+      \subfloat{
+        \includegraphics[width=0.8\linewidth]{icpc-logo}
+      } \quad
+      \subfloat{
+        \includegraphics[width=0.15\linewidth]{ccpc-logo}
+      }
+    \end{figure}
+    % \textbf{\Huge{Harbin Institute of Technology}}
+    \includegraphics[width=.55\linewidth]{school} \\ [2cm]
+    \LARGE{cycleke} \\ [1cm]
     \Large{\today}
   \end{center}
   \clearpage
 \end{titlepage}
+
 \tableofcontents\clearpage
 \pagestyle{fancy}
 \lfoot{}
@@ -67,7 +76,7 @@
 \section{Math}
 
 \subsection{BGSG}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // Finds the primitive root modulo p
 int generator(int p) {
   vector<int> fact;
@@ -124,7 +133,7 @@ vector<int> BSGS(int n, int k, int a) {
 
 \end{lstlisting}
 \subsection{FFT}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 const int MAXN = 4 * 1e5 + 3;
 const double PI = acos(-1);
 complex<double> a[MAXN], b[MAXN];
@@ -188,7 +197,7 @@ int main() {
 
 \end{lstlisting}
 \subsection{Linear Programming}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // CCPC Final 2017 F
 // sum(P(s)) = 1, P(s) >= 0
 // max and equal (sum(P(s)) | i in s)
@@ -493,7 +502,7 @@ int main() {
 
 \end{lstlisting}
 \subsection{Linear Recurrence}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 struct LinearRecurrence {
   using int64 = long long;
   using vec = std::vector<int64>;
@@ -714,7 +723,7 @@ struct LinearRecurrence {
 
 \end{lstlisting}
 \subsection{Linear Sieve}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 const int MAXN = 1e7 + 5;
 
 bool vis[MAXN];
@@ -751,7 +760,7 @@ void sieve() {
 
 \end{lstlisting}
 \subsection{Lucas}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // C(n, m) = C(n / p, m / p) * C(n % p, m % p) (mod p)
 ll lucas(ll n, ll k, int p) {
   ll ret = 1;
@@ -766,7 +775,7 @@ ll lucas(ll n, ll k, int p) {
 
 \end{lstlisting}
 \subsection{Miller Rabin}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 inline ll mod_mul(const ll &a, const ll &b, const ll &mod) {
   ll k = (ll)((1.0L * a * b) / (1.0L * mod)), t = a * b - k * mod;
   t -= mod;
@@ -802,7 +811,7 @@ inline bool Miller_Rabin(const ll &x) {
 
 \end{lstlisting}
 \subsection{Pollard rho}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 inline ll rand64(ll x) {
   return 1ll * ((rand() << 15 ^ rand()) << 30 ^ (rand() << 15 ^ rand())) % x;
 }
@@ -835,7 +844,7 @@ void findfac(ll n) {
 
 \end{lstlisting}
 \subsection{burnside}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // |X/G|={1 \over {|G|}} \sum_{g \in G}|X^g|
 // Gym - 101873B
 // m边形，每边是n*n的矩形，用c种颜色染色，可进行水平旋转，问不同多边形个数。
@@ -868,7 +877,7 @@ int main() {
 
 \end{lstlisting}
 \subsection{china}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 int china(int n, int *a, int *m) {
   int lcm = 1, res = 0;
   for (int i = 0; i < n; ++i) lcm *= m[i];
@@ -883,7 +892,7 @@ int china(int n, int *a, int *m) {
 
 \end{lstlisting}
 \subsection{exctr}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 int exctr(int n, int *a, int *m) {
   int M = m[0], res = a[0];
   for (int i = 1; i < n; ++i) {
@@ -900,7 +909,7 @@ int exctr(int n, int *a, int *m) {
 
 \end{lstlisting}
 \subsection{exgcd}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 int exgcd(int a, int b, int &x, int &y) {
   if (b == 0) return x = 1, y = 0, a;
   int g = exgcd(b, a % b, y, x);
@@ -910,7 +919,7 @@ int exgcd(int a, int b, int &x, int &y) {
 
 \end{lstlisting}
 \subsection{gauss}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 
 const double EPS = 1e-9;
 const int MAXN = MAX_NODE;
@@ -957,7 +966,7 @@ int gauss() {
 
 \end{lstlisting}
 \subsection{杜教筛}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // e = mu x 1
 // d = 1 x 1
 // sigma = d x 1
@@ -991,7 +1000,7 @@ ll S_phi(int n) {
 
 \end{lstlisting}
 \subsection{类欧几里德算法}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 //求 f=sum((a*i+b)/c),g=sum((a*i+b)/c*i),h=sum(((a*i+b)/c)^2), for i in [0..n],
 //整除向下
 #include <bits/stdc++.h>
@@ -1050,7 +1059,7 @@ signed main() {
 \section{Dynamic Programming}
 
 \subsection{斜率优化}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // 树上斜率优化
 // 定义dpi 表示i节点传递到根节点的最短耗时，规定dproot=−P。
 // 有如下转移方程dpu=dpv+dist(u,v)^2+P,v is an ancestor of u.
@@ -1127,7 +1136,7 @@ int main() {
 \section{Data Structure}
 
 \subsection{KD-tree}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // 寻找近点
 #include <bits/stdc++.h>
 using namespace std;
@@ -1341,7 +1350,7 @@ inline void kd_quy(D *u, const int &x, const int &y) {
 
 \end{lstlisting}
 \subsection{LCT}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 struct LCT {
   struct node {
     int val, add;
@@ -1408,7 +1417,7 @@ struct LCT {
 
 \end{lstlisting}
 \subsection{Splay}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -1581,7 +1590,7 @@ int main() {
 
 \end{lstlisting}
 \subsection{zkw}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 int tree[MAXN * 2], pre;
 
 void init(int n, int *a) {
@@ -1611,7 +1620,7 @@ int query(int s, int t) {
 \section{String}
 
 \subsection{AC自动机}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 int ch[MAX_NODE][26], fail[MAX_NODE], dep[MAX_NODE], node_c;
 
 int add_char(int u, int id) {
@@ -1642,7 +1651,7 @@ void build_acam() {
 
 \end{lstlisting}
 \subsection{Hash}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 
 const unsigned int KEY = 6151;
 const unsigned int MOD = 1610612741;
@@ -1663,7 +1672,7 @@ void init(char *s, int n) {
 
 \end{lstlisting}
 \subsection{KMP}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 void get_next(char *S, int *nxt, int n) {
   nxt[0] = -1;
   int j = -1;
@@ -1685,42 +1694,114 @@ int pattern(char *S, char *T, int *nxt, int n, int m) {
 
 \end{lstlisting}
 \subsection{SAM}
-\begin{lstlisting}
-struct Node {
-  int len;
-  Node *link, *ch[ALPHABET_SIZE];
-} node_pool[MAXS], *node_it, *root, *last;
+\begin{lstlisting}[language=c++]
+// SPOJ Lexicographical Substring Search 求字典序第 k 大子串
+#pragma GCC optimize(2)
+#include <bits/stdc++.h>
+using namespace std;
 
-Node *new_node(int len) {
-  node_it->len = len;
-  return node_it++;
-}
-void sam_init() {
-  node_it = node_pool;
-  last = root = new_node(0);
-}
-void sam_extend(int c, int val) {
-  Node *p = last, *np = new_node(p->len + 1);
-  for (last = np; p && !p->ch[c]; p = p->link) p->ch[c] = np;
-  if (!p) {
-    np->link = root;
-  } else {
-    Node *q = p->ch[c];
-    if (q->len == p->len + 1) {
-      np->link = q;
+const int MAXN = 90000 + 3;
+const int ALPHABET = 26;
+
+struct Node {
+  int len, cnt;
+  Node *link, *next[ALPHABET];
+  void init(int len = 0) {
+    link = nullptr;
+    this->len = len, cnt = 0;
+    memset(next, 0, sizeof(next));
+  }
+};
+
+template <int MAX_LENGTH> class SAM {
+public:
+  Node *last, *root;
+
+  void init() {
+    pool_ptr = pool;
+    last = root = new_node(0);
+  }
+
+  void extend(int chr) {
+    Node *p = last, *np = new_node(p->len + 1);
+    for (last = np; p && !p->next[chr]; p = p->link) p->next[chr] = np;
+    if (!p) {
+      np->link = root;
     } else {
-      Node *nq = new_node(p->len + 1);
-      memcpy(nq->ch, q->ch, sizeof(q->ch));
-      nq->link = q->link;
-      q->link = np->link = nq;
-      for (; p && p->ch[c] == q; p = p->link) p->ch[c] = nq;
+      Node *q = p->next[chr];
+      if (q->len == p->len + 1) {
+        np->link = q;
+      } else {
+        Node *nq = new_node(p->len + 1);
+        memcpy(nq->next, q->next, sizeof(q->next));
+        nq->link = q->link, q->link = np->link = nq;
+        for (; p && p->next[chr] == q; p = p->link) p->next[chr] = nq;
+      }
     }
   }
+
+  void toposort() {
+    int size = pool_ptr - pool;
+    memset(cnt, 0, size * sizeof(int));
+    for (Node *it = pool; it < pool_ptr; ++it) ++cnt[it->len];
+    for (int i = 1; i < size; ++i) cnt[i] += cnt[i - 1];
+    for (Node *it = pool; it < pool_ptr; ++it) order[--cnt[it->len]] = it;
+    for (int i = size - 1; ~i; --i) {
+      Node *u = order[i];
+      for (int j = 0; j < ALPHABET; ++j)
+        u->cnt += u->next[j] ? u->next[j]->cnt + 1 : 0;
+    }
+  }
+
+  void find_kth(int k, char *str) {
+    char *ptr = str;
+    Node *u = root;
+    while (k) {
+      for (int j = 0; j < ALPHABET; ++j) {
+        if (!u->next[j]) continue;
+        if (u->next[j]->cnt + 1 < k) {
+          k -= u->next[j]->cnt + 1;
+          continue;
+        }
+        --k, *ptr++ = j + 'a';
+        u = u->next[j];
+        break;
+      }
+    }
+    *ptr = 0;
+  }
+
+private:
+  int cnt[MAX_LENGTH * 2];
+  Node pool[MAX_LENGTH * 2], *pool_ptr, *order[MAX_LENGTH * 2];
+
+  Node *new_node(int len) {
+    pool_ptr->init(len);
+    return pool_ptr++;
+  }
+};
+
+SAM<MAXN> sam;
+char str[MAXN];
+
+int main(int argc, char *argv[]) {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr), cout.tie(nullptr);
+
+  cin >> str;
+  sam.init();
+  for (char *it = str; *it; ++it) sam.extend(*it - 'a');
+  sam.toposort();
+
+  int q, k;
+  for (cin >> q; q; --q) cin >> k, sam.find_kth(k, str), puts(str);
+
+  return 0;
 }
 
 \end{lstlisting}
 \subsection{mancher}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 void mancher(char *s, int n) {
   str[0] = '~';
   str[1] = '!';
@@ -1741,7 +1822,7 @@ void mancher(char *s, int n) {
 
 \end{lstlisting}
 \subsection{后缀数组（SAIS）}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // UOJ 模板题，最快算法
 // 字符串必须为正数，BUFFER_SIZE 要随 MAX_LENGTH 同步变化，1e6为25
 #include <bits/stdc++.h>
@@ -1861,7 +1942,7 @@ int main() {
 
 \end{lstlisting}
 \subsection{后缀数组（倍增）}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // UOJ 模板题
 #include <bits/stdc++.h>
 using namespace std;
@@ -1941,7 +2022,7 @@ int main(int argc, char *argv[]) {
 
 \end{lstlisting}
 \subsection{回文树}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 //最长双回文串
 struct PT {
   char s[MAXL];
@@ -2005,7 +2086,7 @@ int main() {
 
 \end{lstlisting}
 \subsection{扩展KMP}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // next[i]:x[i...m-1] 与 x[0...m-1] 的最长公共前缀
 // extend[i]:y[i...n-1] 与 x[0...m-1] 的最长公共前缀
 void prework(char x[], int m, int next[]) {
@@ -2052,22 +2133,21 @@ void exkmp(char x[], int m, char y[], int n, int next[], int extend[]) {
 \section{Graph Theory}
 
 \subsection{SAP}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 struct MF {
   struct Edge {
-    int to, cap, flow;
+    int to, rest;
   } edges[MAXM * 4];
 
   vector<int> adj[MAXN];
   int n, edges_c, dep[MAXN], depc[MAXN], s, t, last[MAXN];
 
   void init(int _n) {
-    n = _n;
+    n = _n, edges_c = 0;
     for (int i = 1; i <= n; ++i) adj[i].clear();
-    edges_c = 0;
   }
 
-  void add_edge(int v, int u, int cap) {
+  void add_edge(int u, int v, int cap) {
     edges[edges_c] = {v, cap, 0};
     adj[u].push_back(edges_c++);
     edges[edges_c] = {u, 0, 0};
@@ -2078,15 +2158,12 @@ struct MF {
     if (u == t || !flow) return flow;
     int v, e, temp, res = 0;
     for (int &i = last[u]; i < (int)adj[u].size(); ++i) {
-      e = adj[u][i];
-      v = edges[e].to;
-      if (edges[e].cap == edges[e].flow) continue;
-      if (dep[v] != dep[u] - 1) continue;
+      e = adj[u][i], v = edges[e].to;
+      if (!edges[e].res || dep[v] != dep[u] - 1) continue;
       temp = dfs(v, min(flow, edges[e].cap - edges[e].flow));
-      edges[e].flow += temp, edges[e ^ 1].flow -= temp;
       res += temp, flow -= temp;
-      if (!flow) return res;
-      if (!dep[s]) return res;
+      edges[e].rest -= temp, edges[e ^ 1].rest += temp;
+      if (!flow || !dep[s]) return res;
     }
     last[u] = 0;
     if (!(--depc[dep[u]])) dep[s] = n + 1;
@@ -2123,7 +2200,7 @@ struct MF {
 
 \end{lstlisting}
 \subsection{tarjan}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 vector<int> adj[MAXN];
 int dfn[MAXN], low[MAXN], dfs_c;
 int bel[MAXN], size[MAXN], scc, stk[MAXN], top, in_stack[MAXN];
@@ -2155,7 +2232,7 @@ void tarjan(int u) {
 
 \end{lstlisting}
 \subsection{一般图最大匹配}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 class GeneralMatch {
 public:
   int n;
@@ -2252,7 +2329,7 @@ public:
 
 \end{lstlisting}
 \subsection{上下界费用流}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -2388,7 +2465,7 @@ int main() {
 
 \end{lstlisting}
 \subsection{最小费用流}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 class MinCostFlow {
 public:
   struct Result {
@@ -2466,7 +2543,7 @@ public:
 \section{Java}
 
 \subsection{进制转换}
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 import java.io.*;
 import java.util.*;
 import java.math.*;
@@ -2552,7 +2629,7 @@ public class Main {
 \section{Others}
 
 \subsection{FastIO}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 namespace FastIO {
 struct Control {
   int ct, val;
@@ -2645,7 +2722,7 @@ struct FastIO {
 
 \end{lstlisting}
 \subsection{duipai}
-\begin{lstlisting}
+\begin{lstlisting}[language=bash]
 #/usr/bin/bash
 
 while true; do
@@ -2662,29 +2739,49 @@ done
 
 \end{lstlisting}
 \subsection{emacs}
-\begin{lstlisting}
-(defun comp ()
-  (interactive)
-  (save-some-buffers t)
-  (setq filename (file-name-nondirectory buffer-file-name))
-  (setq progname (file-name-sans-extension filename))
-  (setq suffix (file-name-extension filename))
-  (compile (concat "g++ " filename " -o " progname " -std=gnu++14 -O2 -Wall -Werror")))
-(add-hook 'c++-mode
-          '(lambda ()
-             (c-set-style "K&R")
-             (setq tab-width 2)
-             (setq indent-tabs-mode nil)
-             (setq c-basic-offset 2)))
-(global-set-key [f5] 'comp)
+\begin{lstlisting}[language=elisp]
+(defun myc++ ()
+  (c-set-style "stroustrup")
+  (setq tab-width 2)
+  (setq indent-tabs-mode nil)
+  (setq c-basic-offset 2)
+  (c-toggle-hungry-state)
+  (defun compile-and-run()
+    (interactive)
+    (defvar file-name (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
+    (compile
+     (format "g++ %s.cpp -o %s -Wall -Wextra -Wshadow -O2 && %s.exe"
+             file-name file-name file-name)))
+  (local-set-key (kbd "C-c C-c") 'compile-and-run)
+  (local-set-key (kbd "C-c C-k") 'kill-compilation))
+(add-hook 'c++-mode-hook 'myc++)
+
+(global-set-key [(meta ?o)] 'other-window)
+(global-set-key [(meta ?/)] 'hippie-expand)
+(global-set-key [(control tab)] ' senator-completion-menu-popup)
+(setq hippie-expand-try-functions-list
+      '(try-expand-dabbrev
+        try-expand-dabbrev-visible
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-all-abbrevs
+        try-expand-list
+        try-expand-line))
+
+(setq auto-save-mode nil)
+(setq make-backup-files nil)
 
 (ido-mode t)
+(show-paren-mode 1)
 (delete-selection-mode t)
+(global-linum-mode t)
 (global-auto-revert-mode t)
 
 \end{lstlisting}
 \subsection{myalloc}
-\begin{lstlisting}
+\begin{lstlisting}[language=c++]
 // useage: vector<int, myalloc<int>> L;
 static char space[10000000], *sp = space;
 template <typename T> struct myalloc : allocator<T> {
@@ -2704,7 +2801,7 @@ template <typename T> struct myalloc : allocator<T> {
 
 \end{lstlisting}
 \subsection{vimrc}
-\begin{lstlisting}
+\begin{lstlisting}[language=sh]
 syntax enable
 set syntax=on
 set nobackup
