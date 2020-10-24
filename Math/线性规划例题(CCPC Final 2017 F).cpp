@@ -1,6 +1,7 @@
-// CCPC Final 2017 F
-// sum(P(s)) = 1, P(s) >= 0
-// max and equal (sum(P(s)) | i in s)
+// 有N组人，每组人有ai个，可以进行若干次选择，每次选择一些至少有M个人的组，这些组的人都中奖。
+// 现在要使每个人中奖概率相等，且中奖概率最大。N <= 10,M,ai <= 100
+
+// 写法一
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -107,7 +108,7 @@ int main() {
   return 0;
 }
 
-// 备份
+// 写法二
 #include <bits/stdc++.h>
 using namespace std;
 

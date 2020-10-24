@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 400 + 3;
+const int ALPHA = 1e9 + 10;
+const ll NOT = 0;
+const ll INF = 3ll * MAXN * ALPHA;
+// 最大费用流时 NOT = 0， 最大费用流最大流时 NOT = -1ll * MAXN * ALPHA
+// 点为 1 .. n （左为 1 .. nl， 右为 1 .. nr）
+struct KM {
+  int n, nl, nr, lk[MAXN], pre[MAXN];
+  ll lx[MAXN], ly[MAXN], w[MAXN][MAXN], slack[MAXN];
+  bitset<MAXN> vy;
+
+  void init(int n) {
+    this->n = n;
+    memset(lk, 0, sizeof(int) * (n + 1));
+    memset(pre, 0, sizeof(int) * (n + 1));
+    memset(lx, 0, sizeof(ll) * (n + 1));
+    memset(ly, 0, sizeof(ll) * (n + 1));
+    memset(slack, 0, sizeof(ll) * (n + 1));
+    for (int i = 0; i <= n; ++i) fill(w[i], w[i] + n + 1, NOT);
+  }
+
+  void add_edge(int x, int y, ll z) {
+    if (w[y][x] < z) w[y][x] = z;
+  }
+
+  ll match() {
+    for (int i = 1; i <= n; ++i)
+      for (int j = 1; j <= n; ++j) lx[i] = max(lx[i], w[i][j]);
+    for (int i = 1, py, p, x; i <= n; ++i) {
+      for (int j = 1; j <= n; ++j) slack[j] = INF, vy[j] = 0;
+      for (lk[py = 0] = i; lk[py]; py = p) {
+        ll delta = INF;
+        vy[py] = 1, x = lk[py];
+        for (int y = 1; y <= n; ++y) {
+          if (vy[y]) continue;
+          if (lx[x] + ly[y] - w[x][y] < slack[y])
+            slack[y] = lx[x] + ly[y] - w[x][y], pre[y] = py;
+          if (slack[y] < delta) delta = slack[y], p = y;
+        }
+        for (int y = 0; y <= n; ++y)
+          if (vy[y]) {
+            lx[lk[y]] -= delta, ly[y] += delta;
+          } else {
+            slack[y] -= delta;
+          }
+      }
+      for (; py; py = pre[py]) lk[py] = lk[pre[py]];
+    }
+
+    ll ans = 0;
+    for (int i = 1; i <= n; ++i) {
+      ans += lx[i] + ly[i];
+      if (w[lk[i]][i] == NOT) ans -= NOT;
+    }
+    return ans;
+  }
+} km;
+
+int main(int argc, char *argv[]) {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr), cout.tie(nullptr);
+  cout << fixed << setprecision(10);
+
+  int nl, nr, m;
+  cin >> nl >> nr >> m;
+  km.init(max(nl, nr));
+  for (int x, y, z; m; --m) {
+    cin >> x >> y >> z;
+    km.add_edge(x, y, z);
+  }
+  cout << km.match() << "\n";
+  for (int i = 1; i <= nl; ++i)
+    cout << (km.w[km.lk[i]][i] == NOT ? 0 : km.lk[i]) << " \n"[i == nl];
+
+  return 0;
+}

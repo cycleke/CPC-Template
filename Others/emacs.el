@@ -6,9 +6,9 @@
   (c-toggle-hungry-state)
   (defun compile-and-run()
     (interactive)
-    (let (file-name (file-name-sans-extension (file-name-nondirectory buffer-file-name))))
+    (setq file-name (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
     (compile
-     (format "g++ %s.cpp -o %s -Wall -Wextra -Wshadow -O2 && %s.exe"
+     (format "g++ %s.cpp -o %s -Wall -Wextra -Wshadow -O2 && ./%s < in.txt"
              file-name file-name file-name)))
   (local-set-key (kbd "C-c C-c") 'compile-and-run)
   (local-set-key (kbd "C-c C-k") 'kill-compilation))

@@ -1,0 +1,63 @@
+struct MaxFlow {
+  struct Edge {
+    int to, rest;
+  } edges[MAXM * 4];
+
+  vector<int> adj[MAXN];
+  int n, edges_c, dep[MAXN], s, t, last[MAXN];
+
+  void init(int _n) {
+    n = _n, edges_c = 0;
+    for (int i = 1; i <= n; ++i) adj[i].clear();
+  }
+
+  void add_edge(int u, int v, int cap) {
+    edges[edges_c] = {v, cap, 0};
+    adj[u].push_back(edges_c++);
+    edges[edges_c] = {u, 0, 0};
+    adj[v].push_back(edges_c++);
+  }
+
+  bool bfs() {
+    memset(dep + 1, -1, sizeof(int) * n);
+    static queue<int> q;
+    q.push(s);
+    dep[s] = 0;
+    while (!q.empty()) {
+      int u = q.front();
+      q.pop();
+      for (int i = 0; i < adj[u].size(); ++i) {
+        Edge &e = edges[adj[u][i]];
+        if ((~dep[e.to]) || !e.rest) continue;
+        dep[e.to] = dep[u] + 1;
+        q.push(e.to);
+      }
+    }
+    return ~dep[t];
+  }
+
+  int dfs(int u, int flow) {
+    if (u == t || flow == 0) return flow;
+    int res = 0, temp, e, v;
+    for (int &i = last[u]; i < adj[u].size(); ++i) {
+      e = adj[u][i], v = edges[e].to;
+      if (dep[v] == dep[u] + 1 && edges[e].rest) {
+        temp = dfs(v, min(edges[e].rest, flow));
+        res += temp, flow -= temp;
+        edges[e].rest -= temp, edges[e ^ 1].rest += temp;
+        if (!flow) break;
+      }
+    }
+    return flow;
+  }
+
+  int max_flow(int s, int t) {
+    this->s = s, this->t = t;
+    int res = 0;
+    while (bfs()) {
+      memset(last + 1, 0, sizeof(int) * n);
+      res += dfs(s, INF);
+    }
+    return res;
+  }
+};

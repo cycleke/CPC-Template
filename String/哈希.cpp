@@ -1,7 +1,12 @@
+/*
+ * 其他哈希：
+ * 集合哈希： 可以使用元素的哈希值映射为高进制的某一位，也可以使用质数的积。
+ * 树哈希： 将子树当作集合哈希，加入深度的影响
+ */
 
 const unsigned int KEY = 6151;
 const unsigned int MOD = 1610612741;
-
+// 64 位哈希参数 KEY 随意 MOD 4611686018427387847ll
 unsigned int hash[MAXN], p[MAXN];
 
 inline unsigned int get_hash(int l, int r) {

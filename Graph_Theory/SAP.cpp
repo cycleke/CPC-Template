@@ -1,4 +1,4 @@
-struct MF {
+struct MaxFlow {
   struct Edge {
     int to, rest;
   } edges[MAXM * 4];

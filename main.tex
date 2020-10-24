@@ -196,311 +196,6 @@ int main() {
 }
 
 \end{lstlisting}
-\subsection{Linear Programming}
-\begin{lstlisting}[language=c++]
-// CCPC Final 2017 F
-// sum(P(s)) = 1, P(s) >= 0
-// max and equal (sum(P(s)) | i in s)
-#include <bits/stdc++.h>
-using namespace std;
-
-const int MAXN = int(3e3);
-const int MAXM = int(3e3);
-const double INF = 1e20, EPS = 1e-9;
-
-int n, m;
-double a[MAXM][MAXN], v;
-
-void pivot(int l, int e) {
-  int i, j;
-  a[l][e] = 1 / a[l][e];
-  for (j = 0; j <= n; ++j)
-    if (j != e) a[l][j] *= a[l][e];
-  for (i = 1; i <= m; ++i)
-    if (i != l && fabs(a[i][e]) > EPS) {
-      for (j = 0; j <= n; ++j)
-        if (j != e) a[i][j] -= a[i][e] * a[l][j];
-      a[i][e] = -a[i][e] * a[l][e];
-    }
-  v += a[0][e] * a[l][0];
-  for (j = 1; j <= n; ++j)
-    if (j != e) a[0][j] -= a[0][e] * a[l][j];
-  a[0][e] = -a[0][e] * a[l][e];
-}
-
-double simplex() {
-  int e, l, i;
-  double mn;
-  v = 0;
-  while (true) {
-    for (e = 1; e <= n; ++e)
-      if (a[0][e] > EPS) break;
-    if (e > n) return v;
-    for (i = 1, mn = INF; i <= m; ++i)
-      if (a[i][e] > EPS && mn > a[i][0] / a[i][e])
-        mn = a[i][0] / a[i][e], l = i;
-    if (mn == INF) return INF;
-    pivot(l, e);
-  }
-}
-
-void solve() {
-  static int n, m, g[10];
-  static vector<int> con[10], able;
-
-  scanf("%d %d", &n, &m);
-  for (int i = 0; i < n; ++i) {
-    scanf("%d", g + i);
-    con[i].clear();
-  }
-
-  if (n == 1) {
-    printf("%.10f\n", m >= g[0] ? 1. : 0.);
-    return;
-  }
-
-  able.clear();
-  for (int s = 0, S = 1 << n; s < S; ++s) {
-    int sum = 0;
-    for (int i = 0; i < n; ++i)
-      if (s >> i & 1) sum += g[i];
-    if (sum > m) continue;
-    able.push_back(s);
-    for (int i = 0; i < n; ++i)
-      if (s >> i & 1) con[i].push_back(able.size());
-  }
-  ::n = able.size();
-  ::m = 0;
-  static random_device rd;
-  mt19937 gen(rd());
-  shuffle(able.begin(), able.end(), gen);
-  for (int step = 0; step < n; ++step) {
-    int f = ++::m;
-    for (int i = 0; i <= ::n; ++i) a[f][i] = 0;
-    for (int x : con[step]) ++a[f][x];
-    if (step + 1 < n) {
-      for (int x : con[step + 1]) --a[f][x];
-    } else {
-      for (int x : con[0]) --a[f][x];
-    }
-  }
-
-  ++::m;
-  a[::m][0] = 1;
-  for (int i = 1; i <= ::n; ++i) a[::m][i] = 1;
-
-  ++::m;
-  a[::m][0] = -1;
-  for (int i = 1; i <= ::n; ++i) a[::m][i] = -1;
-
-  for (int i = 0; i <= ::n; ++i) a[0][i] = 0;
-  for (int x : con[0]) ++a[0][x];
-  printf("%.10f\n", simplex());
-}
-
-int main() {
-  int o_o, case_number = 1;
-  for (scanf("%d", &o_o); case_number <= o_o; ++case_number) {
-    printf("Case #%d: ", case_number);
-    solve();
-  }
-  return 0;
-}
-
-// 备份
-#include <bits/stdc++.h>
-using namespace std;
-
-typedef long double db;
-const int MAXN = 3000;
-const int MAXM = 3000;
-const db EPS = 1e-9;
-const db INF = 1e200;
-
-namespace LP {
-db a[MAXM][MAXN];
-int idA[MAXN], idB[MAXN];
-int m, n;
-
-void put_out(int x) {
-  if (x == 0)
-    printf("Infeasible\n");
-  else
-    printf("Unbounded\n");
-  exit(0);
-}
-void pivot(int xA, int xB) {
-  swap(idA[xA], idB[xB]);
-  static int next[MAXN];
-  int i, j, last = MAXN - 1;
-  db tmp = -a[xB][xA];
-  a[xB][xA] = -1.0;
-  for (j = 0; j <= n; j++)
-    if (fabs(a[xB][j]) > EPS) a[xB][last = next[last] = j] /= tmp;
-  next[last] = -1;
-
-  for (i = 0; i <= m; i++)
-    if (i != xB && fabs(tmp = a[i][xA]) > EPS)
-      for (a[i][xA] = 0.0, j = next[MAXN - 1]; ~j; j = next[j])
-        a[i][j] += tmp * a[xB][j];
-}
-db calc() {
-  int xA, xB;
-  db Max, tmp;
-  while (1) {
-    xA = n + 1, idA[xA] = n + m + 1;
-    for (int i = 1; i <= n; i++)
-      if (a[0][i] > EPS && idA[i] < idA[xA]) xA = i;
-
-    if (xA == n + 1) return a[0][0];
-    xB = m + 1, idB[xB] = n + m + 1, Max = -INF;
-    for (int i = 1; i <= m; i++)
-      if (a[i][xA] < -EPS && ((tmp = a[i][0] / a[i][xA]) > Max + EPS ||
-                              (tmp > Max - EPS && idB[i] < idB[xB])))
-        Max = tmp, xB = i;
-
-    if (xB == m + 1) put_out(1);
-
-    pivot(xA, xB);
-  }
-  return a[0][0];
-}
-db solve() {
-  for (int i = 1; i <= n; i++) idA[i] = i;
-  for (int i = 1; i <= m; i++) idB[i] = n + i;
-  static db tmp[MAXN];
-  db Min = 0.0;
-  int l;
-  for (int i = 1; i <= m; i++)
-    if (a[i][0] < Min) Min = a[i][0], l = i;
-  if (Min > -EPS) return calc();
-
-  idA[++n] = 0;
-  for (int i = 1; i <= m; i++) a[i][n] = 1.0;
-  for (int i = 0; i <= n; i++) tmp[i] = a[0][i], a[0][i] = 0.0;
-  a[0][n] = -1.0;
-
-  pivot(n, l);
-
-  if (calc() < -EPS) put_out(0);
-  for (int i = 1; i <= m; i++)
-    if (!idB[i]) {
-      for (int j = 1; j <= n; j++)
-        if (fabs(a[0][j]) > EPS) {
-          pivot(j, i);
-          break;
-        }
-      break;
-    }
-
-  int xA;
-  for (xA = 1; xA <= n; xA++)
-    if (!idA[xA]) break;
-  for (int i = 0; i <= m; i++) a[i][xA] = a[i][n];
-  idA[xA] = idA[n], n--;
-
-  for (int i = 0; i <= n; i++) a[0][i] = 0.0;
-  for (int i = 1; i <= m; i++)
-    if (idB[i] <= n) {
-      for (int j = 0; j <= n; j++) a[0][j] += a[i][j] * tmp[idB[i]];
-    }
-
-  for (int i = 1; i <= n; i++)
-    if (idA[i] <= n) a[0][i] += tmp[idA[i]];
-  return calc();
-}
-db ans[MAXN];
-void findAns() {
-  for (int i = 1; i <= n; i++) ans[i] = 0.0;
-  for (int i = 1; i <= m; i++)
-    if (idB[i] <= n) ans[idB[i]] = a[i][0];
-}
-void work() {
-  for (int i = 1; i <= m; ++i)
-    for (int j = 1; j <= n; ++j) a[i][j] *= -1;
-  printf("%.10f\n", -double(solve()));
-}
-} // namespace LP
-
-void solve() {
-  static int n, m, g[10];
-  static vector<int> con[10], able;
-
-  scanf("%d %d", &n, &m);
-  for (int i = 0; i < n; ++i) {
-    scanf("%d", g + i);
-    con[i].clear();
-  }
-
-  if (n == 1) {
-    printf("%.10f\n", m >= g[0] ? 1.0 : 0.0);
-    return;
-  }
-
-  able.clear();
-  for (int s = 0; s < (1 << n); ++s) {
-    int sum = 0;
-    for (int i = 0; i < n; ++i)
-      if (s >> i & 1) sum += g[i];
-    if (sum > m) continue;
-
-    able.push_back(s);
-    for (int i = 0; i < n; ++i)
-      if (s >> i & 1) con[i].push_back(able.size());
-  }
-
-  LP::n = able.size();
-  LP::m = 0;
-
-  for (int step = 0; step < n; ++step) {
-    int &f = ++LP::m;
-    for (int i = 0; i <= LP::n; ++i) LP::a[f][i] = 0;
-    for (int x : con[step]) ++LP::a[f][x];
-    if (step + 1 < n) {
-      for (int x : con[step + 1]) --LP::a[f][x];
-    } else {
-      for (int x : con[0]) --LP::a[f][x];
-    }
-  }
-
-  ++LP::m;
-  LP::a[LP::m][0] = 1;
-  for (int i = 1; i <= LP::n; ++i) LP::a[LP::m][i] = 1;
-
-  ++LP::m;
-  LP::a[LP::m][0] = -1;
-  for (int i = 1; i <= LP::n; ++i) LP::a[LP::m][i] = -1;
-
-  for (int i = 0; i <= LP::n; ++i) LP::a[0][i] = 0;
-  for (int x : con[0]) ++LP::a[0][x];
-
-  static db a2[MAXM][MAXN];
-  for (int i = 1; i <= LP::m; ++i)
-    for (int j = 1; j <= LP::n; ++j) a2[i][j] = LP::a[i][j];
-  for (int i = 1; i <= LP::m; ++i)
-    for (int j = 1; j <= LP::n; ++j) LP::a[j][i] = a2[i][j];
-  swap(LP::n, LP::m);
-  for (int i = 1; i <= max(LP::n, LP::m); ++i) swap(LP::a[0][i], LP::a[i][0]);
-  LP::a[0][0] = 0;
-  for (int i = 1; i <= LP::m; ++i)
-    for (int j = 1; j <= LP::n; ++j) LP::a[i][j] *= -1;
-  for (int i = 1; i <= LP::m; ++i) LP::a[i][0] *= -1;
-  for (int i = 1; i <= LP::n; ++i) LP::a[0][i] *= -1;
-
-  LP::work();
-}
-
-int main() {
-  int o_o;
-  scanf("%d", &o_o);
-  for (int i = 1; i <= o_o; ++i) {
-    printf("Case #%d: ", i);
-    solve();
-  }
-  return 0;
-}
-
-\end{lstlisting}
 \subsection{Linear Recurrence}
 \begin{lstlisting}[language=c++]
 struct LinearRecurrence {
@@ -965,6 +660,59 @@ int gauss() {
 }
 
 \end{lstlisting}
+\subsection{实数线性规划}
+\begin{lstlisting}[language=c++]
+// 求 max{cx | Ax <= b, x >= 0}
+typedef vector<double> VD;
+VD simplex(vector<VD> A, VD b, VD c) {
+  int n = A.size(), m = A[0].size() + 1, r = n, s = m - 1;
+  vector<VD> D(n + 2, VD(m + 1, 0));
+  vector<int> ix(n + m);
+  for (int i = 0; i < n + m; ++i) ix[i] = i;
+  for (int i = 0; i <= n; ++i) {
+    for (int j = 0; j < m - 1; ++j) D[i][j] = -A[i][j];
+    D[i][m - 1] = 1, D[i][m] = b[i];
+    if (D[r][m] > D[i][m]) r = i;
+  }
+  for (int j = 0; j < m - 1; ++j) D[n][j] = c[j];
+  D[n + 1][m - 1] = -1;
+  for (double d;;) {
+    if (r < n) {
+      swap(ix[s], ix[r + m]);
+      D[r][s] = 1 / D[r][s];
+      vector<int> speed_up;
+      for (int j = 0; j <= m; ++j)
+        if (j != s) {
+          D[r][j] *= -D[r][s];
+          if (D[r][j]) speed_up.push_back(j);
+        }
+      for (int i = 0; i <= n + 1; ++i)
+        if (i != r) {
+          for (int j : speed_up) D[i][j] += D[r][j] * D[i][s];
+          D[i][s] *= D[r][s];
+        }
+    }
+    r = -1, s = -1;
+    for (int j = 0; j < m; ++j)
+      if ((s < 0 || ix[s] > ix[j]) &&
+          (D[n + 1][j] > EPS || (D[n + 1][j] > -EPS && D[n][j] > EPS)))
+        s = j;
+    if (s < 0) break;
+    for (int i = 0; i < n; ++i)
+      if (D[i][s] < -EPS)
+        if (r < 0 || (d = D[r][m] / D[r][s] - D[i][m] / D[i][s]) < -EPS ||
+            (d < EPS && ix[r + m] > ix[i + m]))
+          r = i;
+    if (r < 0) return VD(); //无边界
+  }
+  if (D[n + 1][m] < -EPS) return VD(); // 无解
+  VD x(m - 1);
+  for (int i = m; i < n + m; ++i)
+    if (ix[i] < m - 1) x[ix[i]] = D[i - m][m];
+  return x; // 最优值在D[n][m]
+}
+
+\end{lstlisting}
 \subsection{杜教筛}
 \begin{lstlisting}[language=c++]
 // e = mu x 1
@@ -1052,6 +800,550 @@ signed main() {
     printf("%lld %lld %lld\n", ans.f, ans.h, ans.g);
   }
   return 0;
+}
+
+\end{lstlisting}
+\subsection{线性规划}
+\begin{lstlisting}[language=c++]
+/*
+ * 给定 n 个约束条件， m 个未知数， 求 sum(a[0][i] * x[i]) 的最大值
+ * 约束条件： sum(-a[i][j] * x[j]) <= a[i][0]
+ * 若要求最小值，则进行对偶：即把目标函数的系数和约束条件右边的数交换，然后把矩阵转置
+ */
+const int MAXN = 3e3 + 3, MAXM = 3e3 + 3, INF = ~0U >> 2;
+int n, m, a[MAXN][MAXM], nxt[MAXM];
+void pivot(int l, int e) {
+  a[l][e] = -1;
+  int t = MAXM - 1;
+  for (int i = 0; i <= m; ++i)
+    if (a[l][i]) nxt[t] = i, t = i;
+  nxt[t] = -1;
+  for (int i = 0; i <= n; ++i)
+    if (i != l && (t = a[i][e])) {
+      a[i][e] = 0;
+      for (int j = nxt[MAXM - 1]; ~j; j = nxt[j]) a[i][j] += a[l][j] * t;
+    }
+}
+int simplex() {
+  for (;;) {
+    int mi = INF, l = 0, e = 0;
+    for (int i = 1; i <= m; ++i)
+      if (a[0][i] > 0) {
+        e = i;
+        break;
+      }
+    if (!e) return a[0][0];
+    for (int i = 1; i <= n; ++i)
+      if (a[i][e] < 0 && a[i][0] < mi) mi = a[i][0], l = i;
+    pivot(l, e);
+  }
+}
+
+\end{lstlisting}
+\subsection{线性规划例题(CCPC Final 2017 F)}
+\begin{lstlisting}[language=c++]
+// 有N组人，每组人有ai个，可以进行若干次选择，每次选择一些至少有M个人的组，这些组的人都中奖。
+// 现在要使每个人中奖概率相等，且中奖概率最大。N <= 10,M,ai <= 100
+
+// 写法一
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN = int(3e3);
+const int MAXM = int(3e3);
+const double INF = 1e20, EPS = 1e-9;
+
+int n, m;
+double a[MAXM][MAXN], v;
+
+void pivot(int l, int e) {
+  int i, j;
+  a[l][e] = 1 / a[l][e];
+  for (j = 0; j <= n; ++j)
+    if (j != e) a[l][j] *= a[l][e];
+  for (i = 1; i <= m; ++i)
+    if (i != l && fabs(a[i][e]) > EPS) {
+      for (j = 0; j <= n; ++j)
+        if (j != e) a[i][j] -= a[i][e] * a[l][j];
+      a[i][e] = -a[i][e] * a[l][e];
+    }
+  v += a[0][e] * a[l][0];
+  for (j = 1; j <= n; ++j)
+    if (j != e) a[0][j] -= a[0][e] * a[l][j];
+  a[0][e] = -a[0][e] * a[l][e];
+}
+
+double simplex() {
+  int e, l, i;
+  double mn;
+  v = 0;
+  while (true) {
+    for (e = 1; e <= n; ++e)
+      if (a[0][e] > EPS) break;
+    if (e > n) return v;
+    for (i = 1, mn = INF; i <= m; ++i)
+      if (a[i][e] > EPS && mn > a[i][0] / a[i][e])
+        mn = a[i][0] / a[i][e], l = i;
+    if (mn == INF) return INF;
+    pivot(l, e);
+  }
+}
+
+void solve() {
+  static int n, m, g[10];
+  static vector<int> con[10], able;
+
+  scanf("%d %d", &n, &m);
+  for (int i = 0; i < n; ++i) {
+    scanf("%d", g + i);
+    con[i].clear();
+  }
+
+  if (n == 1) {
+    printf("%.10f\n", m >= g[0] ? 1. : 0.);
+    return;
+  }
+
+  able.clear();
+  for (int s = 0, S = 1 << n; s < S; ++s) {
+    int sum = 0;
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) sum += g[i];
+    if (sum > m) continue;
+    able.push_back(s);
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) con[i].push_back(able.size());
+  }
+  ::n = able.size();
+  ::m = 0;
+  static random_device rd;
+  mt19937 gen(rd());
+  shuffle(able.begin(), able.end(), gen);
+  for (int step = 0; step < n; ++step) {
+    int f = ++::m;
+    for (int i = 0; i <= ::n; ++i) a[f][i] = 0;
+    for (int x : con[step]) ++a[f][x];
+    if (step + 1 < n) {
+      for (int x : con[step + 1]) --a[f][x];
+    } else {
+      for (int x : con[0]) --a[f][x];
+    }
+  }
+
+  ++::m;
+  a[::m][0] = 1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = 1;
+
+  ++::m;
+  a[::m][0] = -1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = -1;
+
+  for (int i = 0; i <= ::n; ++i) a[0][i] = 0;
+  for (int x : con[0]) ++a[0][x];
+  printf("%.10f\n", simplex());
+}
+
+int main() {
+  int o_o, case_number = 1;
+  for (scanf("%d", &o_o); case_number <= o_o; ++case_number) {
+    printf("Case #%d: ", case_number);
+    solve();
+  }
+  return 0;
+}
+
+// 写法二
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long double db;
+const int MAXN = 3000;
+const int MAXM = 3000;
+const db EPS = 1e-9;
+const db INF = 1e200;
+
+namespace LP {
+db a[MAXM][MAXN];
+int idA[MAXN], idB[MAXN];
+int m, n;
+
+void put_out(int x) {
+  if (x == 0)
+    printf("Infeasible\n");
+  else
+    printf("Unbounded\n");
+  exit(0);
+}
+void pivot(int xA, int xB) {
+  swap(idA[xA], idB[xB]);
+  static int next[MAXN];
+  int i, j, last = MAXN - 1;
+  db tmp = -a[xB][xA];
+  a[xB][xA] = -1.0;
+  for (j = 0; j <= n; j++)
+    if (fabs(a[xB][j]) > EPS) a[xB][last = next[last] = j] /= tmp;
+  next[last] = -1;
+
+  for (i = 0; i <= m; i++)
+    if (i != xB && fabs(tmp = a[i][xA]) > EPS)
+      for (a[i][xA] = 0.0, j = next[MAXN - 1]; ~j; j = next[j])
+        a[i][j] += tmp * a[xB][j];
+}
+db calc() {
+  int xA, xB;
+  db Max, tmp;
+  while (1) {
+    xA = n + 1, idA[xA] = n + m + 1;
+    for (int i = 1; i <= n; i++)
+      if (a[0][i] > EPS && idA[i] < idA[xA]) xA = i;
+
+    if (xA == n + 1) return a[0][0];
+    xB = m + 1, idB[xB] = n + m + 1, Max = -INF;
+    for (int i = 1; i <= m; i++)
+      if (a[i][xA] < -EPS && ((tmp = a[i][0] / a[i][xA]) > Max + EPS ||
+                              (tmp > Max - EPS && idB[i] < idB[xB])))
+        Max = tmp, xB = i;
+
+    if (xB == m + 1) put_out(1);
+
+    pivot(xA, xB);
+  }
+  return a[0][0];
+}
+db solve() {
+  for (int i = 1; i <= n; i++) idA[i] = i;
+  for (int i = 1; i <= m; i++) idB[i] = n + i;
+  static db tmp[MAXN];
+  db Min = 0.0;
+  int l;
+  for (int i = 1; i <= m; i++)
+    if (a[i][0] < Min) Min = a[i][0], l = i;
+  if (Min > -EPS) return calc();
+
+  idA[++n] = 0;
+  for (int i = 1; i <= m; i++) a[i][n] = 1.0;
+  for (int i = 0; i <= n; i++) tmp[i] = a[0][i], a[0][i] = 0.0;
+  a[0][n] = -1.0;
+
+  pivot(n, l);
+
+  if (calc() < -EPS) put_out(0);
+  for (int i = 1; i <= m; i++)
+    if (!idB[i]) {
+      for (int j = 1; j <= n; j++)
+        if (fabs(a[0][j]) > EPS) {
+          pivot(j, i);
+          break;
+        }
+      break;
+    }
+
+  int xA;
+  for (xA = 1; xA <= n; xA++)
+    if (!idA[xA]) break;
+  for (int i = 0; i <= m; i++) a[i][xA] = a[i][n];
+  idA[xA] = idA[n], n--;
+
+  for (int i = 0; i <= n; i++) a[0][i] = 0.0;
+  for (int i = 1; i <= m; i++)
+    if (idB[i] <= n) {
+      for (int j = 0; j <= n; j++) a[0][j] += a[i][j] * tmp[idB[i]];
+    }
+
+  for (int i = 1; i <= n; i++)
+    if (idA[i] <= n) a[0][i] += tmp[idA[i]];
+  return calc();
+}
+db ans[MAXN];
+void findAns() {
+  for (int i = 1; i <= n; i++) ans[i] = 0.0;
+  for (int i = 1; i <= m; i++)
+    if (idB[i] <= n) ans[idB[i]] = a[i][0];
+}
+void work() {
+  for (int i = 1; i <= m; ++i)
+    for (int j = 1; j <= n; ++j) a[i][j] *= -1;
+  printf("%.10f\n", -double(solve()));
+}
+} // namespace LP
+
+void solve() {
+  static int n, m, g[10];
+  static vector<int> con[10], able;
+
+  scanf("%d %d", &n, &m);
+  for (int i = 0; i < n; ++i) {
+    scanf("%d", g + i);
+    con[i].clear();
+  }
+
+  if (n == 1) {
+    printf("%.10f\n", m >= g[0] ? 1.0 : 0.0);
+    return;
+  }
+
+  able.clear();
+  for (int s = 0; s < (1 << n); ++s) {
+    int sum = 0;
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) sum += g[i];
+    if (sum > m) continue;
+
+    able.push_back(s);
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) con[i].push_back(able.size());
+  }
+
+  LP::n = able.size();
+  LP::m = 0;
+
+  for (int step = 0; step < n; ++step) {
+    int &f = ++LP::m;
+    for (int i = 0; i <= LP::n; ++i) LP::a[f][i] = 0;
+    for (int x : con[step]) ++LP::a[f][x];
+    if (step + 1 < n) {
+      for (int x : con[step + 1]) --LP::a[f][x];
+    } else {
+      for (int x : con[0]) --LP::a[f][x];
+    }
+  }
+
+  ++LP::m;
+  LP::a[LP::m][0] = 1;
+  for (int i = 1; i <= LP::n; ++i) LP::a[LP::m][i] = 1;
+
+  ++LP::m;
+  LP::a[LP::m][0] = -1;
+  for (int i = 1; i <= LP::n; ++i) LP::a[LP::m][i] = -1;
+
+  for (int i = 0; i <= LP::n; ++i) LP::a[0][i] = 0;
+  for (int x : con[0]) ++LP::a[0][x];
+
+  static db a2[MAXM][MAXN];
+  for (int i = 1; i <= LP::m; ++i)
+    for (int j = 1; j <= LP::n; ++j) a2[i][j] = LP::a[i][j];
+  for (int i = 1; i <= LP::m; ++i)
+    for (int j = 1; j <= LP::n; ++j) LP::a[j][i] = a2[i][j];
+  swap(LP::n, LP::m);
+  for (int i = 1; i <= max(LP::n, LP::m); ++i) swap(LP::a[0][i], LP::a[i][0]);
+  LP::a[0][0] = 0;
+  for (int i = 1; i <= LP::m; ++i)
+    for (int j = 1; j <= LP::n; ++j) LP::a[i][j] *= -1;
+  for (int i = 1; i <= LP::m; ++i) LP::a[i][0] *= -1;
+  for (int i = 1; i <= LP::n; ++i) LP::a[0][i] *= -1;
+
+  LP::work();
+}
+
+int main() {
+  int o_o;
+  scanf("%d", &o_o);
+  for (int i = 1; i <= o_o; ++i) {
+    printf("Case #%d: ", i);
+    solve();
+  }
+  return 0;
+}
+
+\end{lstlisting}
+\subsection{线性规划例题(UOJ 板题代码)}
+\begin{lstlisting}[language=c++]
+#include <bits/stdc++.h>
+using namespace std;
+
+#ifdef __WIN32
+#define LLFORMAT "I64"
+#else
+#define LLFORMAT "ll"
+#endif
+
+#define eps 1e-7
+
+int simplex(vector<vector<double>> &a, vector<double> &b, vector<double> &c,
+            vector<int> &basic) {
+  int m = b.size(), n = c.size();
+  while (true) {
+    int k = -1;
+    for (int j = 0; j < n; ++j)
+      if (c[j] < -eps) {
+        k = j;
+        break;
+      }
+    if (k == -1) {
+      double ans = 0;
+      for (int i = 0; i < m; ++i) ans += c[basic[i]] * b[i];
+      return 0;
+    }
+    int l = -1;
+    for (int i = 0; i < m; ++i)
+      if (a[i][k] > eps) {
+        if (l == -1)
+          l = i;
+        else {
+          double ti = b[i] / a[i][k], tl = b[l] / a[l][k];
+          if (ti < tl - eps || (ti < tl + eps && basic[i] < basic[l])) l = i;
+        }
+      }
+    if (l == -1) return -1;
+    basic[l] = k;
+    double tmp = 1 / a[l][k];
+    for (int j = 0; j < n; ++j) a[l][j] *= tmp;
+    b[l] *= tmp;
+    for (int i = 0; i < m; ++i)
+      if (i != l) {
+        tmp = a[i][k];
+        for (int j = 0; j < n; ++j) a[i][j] -= tmp * a[l][j];
+        b[i] -= tmp * b[l];
+      }
+    tmp = c[k];
+    for (int j = 0; j < n; ++j) c[j] -= tmp * a[l][j];
+  }
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  int n, m, T;
+  cin >> n >> m >> T;
+  vector<double> c(n + m, 0);
+  for (int i = 0; i < n; ++i) {
+    cin >> c[i];
+    c[i] *= -1;
+  }
+  auto C = c;
+  vector<vector<double>> a(m, vector<double>(n + m, 0));
+  vector<double> b(m);
+  vector<int> basic(m, -1), tmp;
+  for (int i = 0; i < m; ++i) {
+    for (int j = 0; j < n; ++j) cin >> a[i][j];
+    a[i][i + n] = 1;
+    cin >> b[i];
+    if (b[i] > -eps)
+      basic[i] = i + n;
+    else
+      tmp.push_back(i);
+  }
+  if (!tmp.empty()) {
+    sort(tmp.begin(), tmp.end(), [&](int i, int j) { return b[i] > b[j]; });
+    vector<vector<double>> A;
+    vector<double> B, C(n + m + 1, 0);
+    vector<int> Basic;
+    for (int i : tmp) {
+      vector<double> foo;
+      for (int j = 0; j < n + m; ++j) foo.push_back(-a[i][j]);
+      foo.push_back(1);
+      double bar = -b[i];
+      for (int i = 0; i < A.size(); ++i) {
+        double tmp = foo[Basic[i]];
+        for (int j = 0; j <= n + m; ++j) foo[j] -= tmp * A[i][j];
+        bar -= tmp * B[i];
+      }
+      for (int j = n + m; j >= 0; --j)
+        if (-eps < foo[j] - 1 && foo[j] - 1 < eps) {
+          Basic.push_back(j);
+          break;
+        }
+      for (int i = 0; i < A.size(); ++i) {
+        double tmp = A[i][Basic.back()];
+        for (int j = 0; j <= n + m; ++j) A[i][j] -= tmp * foo[j];
+        B[i] -= tmp * bar;
+      }
+      A.push_back(foo);
+      B.push_back(bar);
+    }
+    for (int i = 0; i < A.size(); ++i)
+      if (Basic[i] == n + m) {
+        for (int j = 0; j < n + m; ++j) C[j] = -A[i][j];
+      }
+    for (int i = 0; i < m; ++i)
+      if (b[i] > -eps) {
+        A.push_back(a[i]);
+        A[A.size() - 1].push_back(0);
+        B.push_back(b[i]);
+        Basic.push_back(basic[i]);
+      }
+    simplex(A, B, C, Basic);
+    bool flag = true;
+    for (int i = 0; i < m; ++i)
+      if (Basic[i] == n + m) {
+        if (B[i] > eps) {
+          cout << "Infeasible\n";
+          return 0;
+        }
+        int k = -1;
+        for (int j = 0; j < n + m; ++j)
+          if (A[i][j] > eps || A[i][j] < -eps) {
+            k = j;
+            break;
+          }
+        if (k != -1) {
+          double tmp = 1 / A[i][k];
+          Basic[i] = k;
+          for (int j = 0; j <= n + m; ++j) A[i][j] *= tmp;
+          B[i] *= tmp;
+          for (int l = 0; l < m; ++l)
+            if (l != i) {
+              tmp = A[l][k];
+              for (int j = 0; j <= n + m; ++j) A[l][j] -= tmp * A[i][j];
+              B[l] -= tmp * B[i];
+            }
+        } else
+          flag = false;
+        break;
+      }
+    if (flag) {
+      A.push_back(vector<double>(n + m, 0));
+      A[A.size() - 1].push_back(1);
+      B.push_back(0);
+      Basic.push_back(n + m);
+      for (int i = 0; i < A.size() - 1; ++i) {
+        double tmp = A[i].back();
+        for (int j = 0; j <= n + m; ++j) A[i][j] -= tmp * A[A.size() - 1][j];
+        B[i] -= tmp * B.back();
+      }
+    }
+    a = A;
+    b = B;
+    basic = Basic;
+    c.push_back(0);
+    for (int i = 0; i < a.size(); ++i) {
+      double tmp = c[basic[i]];
+      for (int j = 0; j <= n + m; ++j) c[j] -= tmp * a[i][j];
+    }
+  }
+  auto foo = simplex(a, b, c, basic);
+  if (foo == -1)
+    cout << "Unbounded" << endl;
+  else {
+    double res = 0;
+    vector<double> ans(n, 0);
+    for (int i = 0; i < basic.size(); ++i)
+      if (basic[i] < n) ans[basic[i]] = b[i];
+    for (int j = 0; j < n; ++j) res -= C[j] * ans[j];
+    cout << setprecision(8) << res << endl;
+    if (T == 1) {
+      for (int i = 0; i < n; ++i) cout << setprecision(8) << ans[i] << ' ';
+      cout << endl;
+    }
+  }
+  return 0;
+}
+
+\end{lstlisting}
+\subsection{自适应Simpson}
+\begin{lstlisting}[language=c++]
+// 计算 \int_a^b f(x) dx
+double simpson(double a, double b) {
+  double c = a + (b - a) / 2;
+  return (f(a) + 4 * f(c) + f(b)) * (b - a) / 6;
+}
+double integral(double a, double b, double eps, double A) {
+  double c = a + (b - a) / 2;
+  double L = simpson(a, c), R = simpson(c, b);
+  if (fabs(L + R - A) <= 15 * eps) return L + R + (L + R - A) / 15;
+  return integral(a, c, eps / 2, L) + integral(c, b, eps / 2, R);
+}
+double integral(double a, double b, double eps) {
+  return integral(a, b, eps, simpson(a, b));
 }
 
 \end{lstlisting}
@@ -1629,11 +1921,13 @@ int add_char(int u, int id) {
 }
 void build_acam() {
   queue<int> que;
+  fail[0] = 0;
   for (int i = 0; i < 26; ++i)
     if (~ch[0][i]) {
       que.push(ch[0][i]);
       fail[ch[0][i]] = 0;
-      dep[ch[0][i]] = 1;
+    } else {
+      ch[0][i] = 0;
     }
   while (!que.empty()) {
     int u = que.front(), f = fail[u];
@@ -1641,33 +1935,12 @@ void build_acam() {
     for (int i = 0; i < 26; ++i)
       if (~ch[u][i]) {
         que.push(ch[u][i]);
-        for (f = fail[u]; ch[f][i] == 1; f = fail[f]) {}
         fail[ch[u][i]][i] = ch[f][i];
-        dep[ch[u][i]] = dep[u] + 1;
+      } else {
+        ch[u][i] = ch[f][i];
       }
   }
   for (int i = 1; i < node_c; ++i) adj[fail[i]].push_back(i);
-}
-
-\end{lstlisting}
-\subsection{Hash}
-\begin{lstlisting}[language=c++]
-
-const unsigned int KEY = 6151;
-const unsigned int MOD = 1610612741;
-
-unsigned int hash[MAXN], p[MAXN];
-
-inline unsigned int get_hash(int l, int r) {
-  return (hash[r] + MOD - 1ULL * hash[l - 1] * p[r - l + 1] % MOD) % MOD;
-}
-
-void init(char *s, int n) {
-  p[0] = 1;
-  for (int i = 1; i <= n; ++i) {
-    p[i] = p[i - 1] * KEY % MOD;
-    hash[i] = (1LL * hash[i - 1] * KEY + s[i]) % MOD;
-  }
 }
 
 \end{lstlisting}
@@ -2021,6 +2294,185 @@ int main(int argc, char *argv[]) {
 }
 
 \end{lstlisting}
+\subsection{哈希}
+\begin{lstlisting}[language=c++]
+/*
+ * 其他哈希：
+ * 集合哈希： 可以使用元素的哈希值映射为高进制的某一位，也可以使用质数的积。
+ * 树哈希： 将子树当作集合哈希，加入深度的影响
+ */
+
+const unsigned int KEY = 6151;
+const unsigned int MOD = 1610612741;
+// 64 位哈希参数 KEY 随意 MOD 4611686018427387847ll
+unsigned int hash[MAXN], p[MAXN];
+
+inline unsigned int get_hash(int l, int r) {
+  return (hash[r] + MOD - 1ULL * hash[l - 1] * p[r - l + 1] % MOD) % MOD;
+}
+
+void init(char *s, int n) {
+  p[0] = 1;
+  for (int i = 1; i <= n; ++i) {
+    p[i] = p[i - 1] * KEY % MOD;
+    hash[i] = (1LL * hash[i - 1] * KEY + s[i]) % MOD;
+  }
+}
+
+\end{lstlisting}
+\subsection{哈希例题(2020 秦皇岛J)}
+\begin{lstlisting}[language=c++]
+// 两次哈希
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 3e5 + 3;
+const int MAX_PRIME = 8960453 + 3;
+const int MOD = 998244353;
+const ll BASE = 709;
+const ll HASH_MOD = 4611686018427387847ll;
+
+char s[MAXN];
+int fac[MAXN], inv[MAXN], fac_inv[MAXN], prime[MAXN * 2];
+ll ha[MAXN], p[MAXN], pref[MAXN], suff[MAXN], value[MAXN * 2];
+pair<ll, int> bin[MAXN];
+
+int cnt[MAXN], pidx[MAXN], sidx[MAXN];
+bitset<MAX_PRIME> mark;
+
+ll fmul(ll a, ll b) {
+  ll k = (ll)((1.l * a * b) / (1.l * HASH_MOD)), t = a * b - k * HASH_MOD;
+  for (t -= HASH_MOD; t < 0; t += HASH_MOD) {}
+  return t;
+}
+ll getRange(int l, int r) {
+  return (ha[r] - fmul(ha[l - 1], p[r - l + 1]) + HASH_MOD) % HASH_MOD;
+}
+
+int gao(int n, int d) {
+  int tot = 0;
+  for (int l = 1, r = d; r <= n; l += d, r += d) value[tot++] = getRange(l, r);
+  int bunch = n / d, rest = n % d;
+  if (rest) {
+    for (int r = n, l = n - d + 1; l >= 1; l -= d, r -= d)
+      value[tot++] = getRange(l, r);
+    sort(value, value + tot);
+    tot = unique(value, value + tot) - value;
+    pref[0] = pref[1] = suff[n] = suff[n + 1] = 1;
+    for (int i = d; i <= n; i += d) {
+      int idx = lower_bound(value, value + tot, getRange(i - d + 1, i)) - value;
+      pidx[i] = idx;
+      pref[i] = fmul(pref[i - d], prime[idx]);
+    }
+    for (int i = n - d + 1; i >= 1; i -= d) {
+      int idx = lower_bound(value, value + tot, getRange(i, i + d - 1)) - value;
+      sidx[i] = idx;
+      suff[i] = fmul(suff[i + d], prime[idx]);
+    }
+    int sc = 0, cur = fac[bunch];
+    memset(cnt, 0, tot * sizeof(int));
+    for (int l = 1, r = rest; r <= n; l += d, r += d) {
+      if (r + d <= n) {
+        ++cnt[sidx[r + 1]];
+        cur = 1ll * cur * inv[cnt[sidx[r + 1]]] % MOD;
+      }
+      bin[sc++] = {fmul(pref[l - 1], suff[r + 1]), l};
+    }
+    sort(bin, bin + sc);
+    mark[bin[0].second] = 1;
+    for (int i = 1; i < sc; ++i)
+      mark[bin[i].second] = bin[i].first != bin[i - 1].first;
+
+    int res = 0;
+    for (int l = 1, r = rest; r <= n; l += d, r += d) {
+      if (l - 1 >= 1) {
+        ++cnt[pidx[l - 1]];
+        cur = 1ll * cur * inv[cnt[pidx[l - 1]]] % MOD;
+      }
+      if (mark[l]) {
+        res += cur;
+        if (res >= MOD) res -= MOD;
+      }
+      if (r + 1 <= n) {
+        cur = 1ll * cur * cnt[sidx[r + 1]] % MOD;
+        --cnt[sidx[r + 1]];
+      }
+    }
+    return res;
+  } else {
+    sort(value, value + tot);
+    ll pre = value[0];
+    int res = fac[bunch], cnt = 1;
+    for (int i = 1; i < tot; ++i) {
+      if (value[i] != pre) {
+        if (cnt > 1) res = 1ll * res * fac_inv[cnt] % MOD;
+        cnt = 1, pre = value[i];
+      } else {
+        ++cnt;
+      }
+    }
+    if (cnt > 1) res = 1ll * res * fac_inv[cnt] % MOD;
+    return res;
+  }
+}
+
+void solve() {
+  cin >> (s + 1);
+  int n = strlen(s + 1);
+  for (int i = 1; i <= n; ++i)
+    ha[i] = (fmul(ha[i - 1], BASE) + s[i]) % HASH_MOD;
+
+  int ans = 0;
+  for (int d = 1; d <= n; ++d) {
+    ans += gao(n, d);
+    if (ans >= MOD) ans -= MOD;
+    // cerr << "# " << ans << endl;
+  }
+  cout << ans << "\n";
+}
+
+void prework() {
+  p[0] = 1;
+  for (int i = 1; i < MAXN; ++i) p[i] = fmul(p[i - 1], BASE);
+  fac[0] = fac[1] = 1;
+  fac_inv[0] = fac_inv[1] = inv[1] = 1;
+  for (int i = 2; i < MAXN; ++i) {
+    fac[i] = 1ll * fac[i - 1] * i % MOD;
+    inv[i] = 1ll * (MOD - MOD / i) * inv[MOD % i] % MOD;
+    fac_inv[i] = 1ll * fac_inv[i - 1] * inv[i] % MOD;
+  }
+
+  int pc = 0;
+  for (int i = 2; i < MAX_PRIME; ++i) {
+    if (!mark[i]) prime[pc++] = i;
+    for (int j = 0; j < pc; ++j) {
+      int t = i * prime[j];
+      if (t >= MAX_PRIME) break;
+      mark[t] = 1;
+      if (i % prime[j] == 0) break;
+    }
+  }
+}
+
+int main(int argc, char *argv[]) {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr), cout.tie(nullptr);
+
+  prework();
+
+  int T;
+  cin >> T;
+  for (int step = 1; step <= T; ++step) {
+    cout << "Case #" << step << ": ";
+    solve();
+  }
+
+  return 0;
+}
+
+\end{lstlisting}
 \subsection{回文树}
 \begin{lstlisting}[language=c++]
 //最长双回文串
@@ -2132,9 +2584,94 @@ void exkmp(char x[], int m, char y[], int n, int next[], int extend[]) {
 
 \section{Graph Theory}
 
+\subsection{KM}
+\begin{lstlisting}[language=c++]
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 400 + 3;
+const int ALPHA = 1e9 + 10;
+const ll NOT = 0;
+const ll INF = 3ll * MAXN * ALPHA;
+// 最大费用流时 NOT = 0， 最大费用流最大流时 NOT = -1ll * MAXN * ALPHA
+// 点为 1 .. n （左为 1 .. nl， 右为 1 .. nr）
+struct KM {
+  int n, nl, nr, lk[MAXN], pre[MAXN];
+  ll lx[MAXN], ly[MAXN], w[MAXN][MAXN], slack[MAXN];
+  bitset<MAXN> vy;
+
+  void init(int n) {
+    this->n = n;
+    memset(lk, 0, sizeof(int) * (n + 1));
+    memset(pre, 0, sizeof(int) * (n + 1));
+    memset(lx, 0, sizeof(ll) * (n + 1));
+    memset(ly, 0, sizeof(ll) * (n + 1));
+    memset(slack, 0, sizeof(ll) * (n + 1));
+    for (int i = 0; i <= n; ++i) fill(w[i], w[i] + n + 1, NOT);
+  }
+
+  void add_edge(int x, int y, ll z) {
+    if (w[y][x] < z) w[y][x] = z;
+  }
+
+  ll match() {
+    for (int i = 1; i <= n; ++i)
+      for (int j = 1; j <= n; ++j) lx[i] = max(lx[i], w[i][j]);
+    for (int i = 1, py, p, x; i <= n; ++i) {
+      for (int j = 1; j <= n; ++j) slack[j] = INF, vy[j] = 0;
+      for (lk[py = 0] = i; lk[py]; py = p) {
+        ll delta = INF;
+        vy[py] = 1, x = lk[py];
+        for (int y = 1; y <= n; ++y) {
+          if (vy[y]) continue;
+          if (lx[x] + ly[y] - w[x][y] < slack[y])
+            slack[y] = lx[x] + ly[y] - w[x][y], pre[y] = py;
+          if (slack[y] < delta) delta = slack[y], p = y;
+        }
+        for (int y = 0; y <= n; ++y)
+          if (vy[y]) {
+            lx[lk[y]] -= delta, ly[y] += delta;
+          } else {
+            slack[y] -= delta;
+          }
+      }
+      for (; py; py = pre[py]) lk[py] = lk[pre[py]];
+    }
+
+    ll ans = 0;
+    for (int i = 1; i <= n; ++i) {
+      ans += lx[i] + ly[i];
+      if (w[lk[i]][i] == NOT) ans -= NOT;
+    }
+    return ans;
+  }
+} km;
+
+int main(int argc, char *argv[]) {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr), cout.tie(nullptr);
+  cout << fixed << setprecision(10);
+
+  int nl, nr, m;
+  cin >> nl >> nr >> m;
+  km.init(max(nl, nr));
+  for (int x, y, z; m; --m) {
+    cin >> x >> y >> z;
+    km.add_edge(x, y, z);
+  }
+  cout << km.match() << "\n";
+  for (int i = 1; i <= nl; ++i)
+    cout << (km.w[km.lk[i]][i] == NOT ? 0 : km.lk[i]) << " \n"[i == nl];
+
+  return 0;
+}
+
+\end{lstlisting}
 \subsection{SAP}
 \begin{lstlisting}[language=c++]
-struct MF {
+struct MaxFlow {
   struct Edge {
     int to, rest;
   } edges[MAXM * 4];
@@ -2194,6 +2731,73 @@ struct MF {
 
     int res = 0;
     while (dep[s] <= n) res += dfs(s, INT_MAX);
+    return res;
+  }
+};
+
+\end{lstlisting}
+\subsection{dinic}
+\begin{lstlisting}[language=c++]
+struct MaxFlow {
+  struct Edge {
+    int to, rest;
+  } edges[MAXM * 4];
+
+  vector<int> adj[MAXN];
+  int n, edges_c, dep[MAXN], s, t, last[MAXN];
+
+  void init(int _n) {
+    n = _n, edges_c = 0;
+    for (int i = 1; i <= n; ++i) adj[i].clear();
+  }
+
+  void add_edge(int u, int v, int cap) {
+    edges[edges_c] = {v, cap, 0};
+    adj[u].push_back(edges_c++);
+    edges[edges_c] = {u, 0, 0};
+    adj[v].push_back(edges_c++);
+  }
+
+  bool bfs() {
+    memset(dep + 1, -1, sizeof(int) * n);
+    static queue<int> q;
+    q.push(s);
+    dep[s] = 0;
+    while (!q.empty()) {
+      int u = q.front();
+      q.pop();
+      for (int i = 0; i < adj[u].size(); ++i) {
+        Edge &e = edges[adj[u][i]];
+        if ((~dep[e.to]) || !e.rest) continue;
+        dep[e.to] = dep[u] + 1;
+        q.push(e.to);
+      }
+    }
+    return ~dep[t];
+  }
+
+  int dfs(int u, int flow) {
+    if (u == t || flow == 0) return flow;
+    int res = 0, temp, e, v;
+    for (int &i = last[u]; i < adj[u].size(); ++i) {
+      e = adj[u][i], v = edges[e].to;
+      if (dep[v] == dep[u] + 1 && edges[e].rest) {
+        temp = dfs(v, min(edges[e].rest, flow));
+        res += temp, flow -= temp;
+        edges[e].rest -= temp, edges[e ^ 1].rest += temp;
+        if (!flow) break;
+      }
+    }
+    return flow;
+  }
+
+  int max_flow(int s, int t) {
+    this->s = s, this->t = t;
+    int res = 0;
+    while (bfs()) {
+      memset(last + 1, 0, sizeof(int) * n);
+      res += dfs(s, INF);
+    }
     return res;
   }
 };
@@ -2539,6 +3143,101 @@ public:
 };
 
 \end{lstlisting}
+\subsection{高标预流推进}
+\begin{lstlisting}[language=c++]
+#include <cstdio>
+#include <cstring>
+#include <queue>
+using namespace std;
+const int N = 1e4 + 4, M = 2e5 + 5, INF = 0x3f3f3f3f;
+int n, m, s, t;
+
+struct qxx {
+  int nex, t, v;
+};
+qxx e[M * 2];
+int h[N], cnt = 1;
+void add_path(int f, int t, int v) { e[++cnt] = (qxx){h[f], t, v}, h[f] = cnt; }
+void add_flow(int f, int t, int v) {
+  add_path(f, t, v);
+  add_path(t, f, 0);
+}
+
+int ht[N], ex[N], gap[N]; // 高度；超额流；gap 优化
+bool bfs_init() {
+  memset(ht, 0x3f, sizeof(ht));
+  queue<int> q;
+  q.push(t), ht[t] = 0;
+  while (q.size()) { // 反向 BFS, 遇到没有访问过的结点就入队
+    int u = q.front();
+    q.pop();
+    for (int i = h[u]; i; i = e[i].nex) {
+      const int &v = e[i].t;
+      if (e[i ^ 1].v && ht[v] > ht[u] + 1) ht[v] = ht[u] + 1, q.push(v);
+    }
+  }
+  return ht[s] != INF; // 如果图不连通，返回 0
+}
+struct cmp {
+  bool operator()(int a, int b) const { return ht[a] < ht[b]; }
+};                                        // 伪装排序函数
+priority_queue<int, vector<int>, cmp> pq; // 将需要推送的结点以高度高的优先
+bool vis[N];                              // 是否在优先队列中
+int push(int u) { // 尽可能通过能够推送的边推送超额流
+  for (int i = h[u]; i; i = e[i].nex) {
+    const int &v = e[i].t, &w = e[i].v;
+    if (!w || ht[u] != ht[v] + 1) continue;
+    int k = min(w, ex[u]); // 取到剩余容量和超额流的最小值
+    ex[u] -= k, ex[v] += k, e[i].v -= k, e[i ^ 1].v += k; // push
+    if (v != s && v != t && !vis[v])
+      pq.push(v), vis[v] = 1; // 推送之后，v 必然溢出，则入堆，等待被推送
+    if (!ex[u]) return 0; // 如果已经推送完就返回
+  }
+  return 1;
+}
+void relabel(int u) { // 重贴标签（高度）
+  ht[u] = INF;
+  for (int i = h[u]; i; i = e[i].nex)
+    if (e[i].v) ht[u] = min(ht[u], ht[e[i].t]);
+  ++ht[u];
+}
+int hlpp() {                 // 返回最大流
+  if (!bfs_init()) return 0; // 图不连通
+  ht[s] = n;
+  memset(gap, 0, sizeof(gap));
+  for (int i = 1; i <= n; i++)
+    if (ht[i] != INF) gap[ht[i]]++; // 初始化 gap
+  for (int i = h[s]; i; i = e[i].nex) {
+    const int v = e[i].t, w = e[i].v; // 队列初始化
+    if (!w) continue;
+    ex[s] -= w, ex[v] += w, e[i].v -= w, e[i ^ 1].v += w; // 注意取消 w 的引用
+    if (v != s && v != t && !vis[v]) pq.push(v), vis[v] = 1; // 入队
+  }
+  while (pq.size()) {
+    int u = pq.top();
+    pq.pop(), vis[u] = 0;
+    while (push(u)) { // 仍然溢出
+      // 如果 u 结点原来所在的高度没有结点了，相当于出现断层
+      if (!--gap[ht[u]])
+        for (int i = 1; i <= n; i++)
+          if (i != s && i != t && ht[i] > ht[u] && ht[i] < n + 1) ht[i] = n + 1;
+      relabel(u);
+      ++gap[ht[u]]; // 新的高度，更新 gap
+    }
+  }
+  return ex[t];
+}
+int main() {
+  scanf("%d%d%d%d", &n, &m, &s, &t);
+  for (int i = 1, u, v, w; i <= m; i++) {
+    scanf("%d%d%d", &u, &v, &w);
+    add_flow(u, v, w);
+  }
+  printf("%d", hlpp());
+  return 0;
+}
+
+\end{lstlisting}
 
 \section{Java}
 
@@ -2748,9 +3447,9 @@ done
   (c-toggle-hungry-state)
   (defun compile-and-run()
     (interactive)
-    (defvar file-name (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
+    (setq file-name (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
     (compile
-     (format "g++ %s.cpp -o %s -Wall -Wextra -Wshadow -O2 && %s.exe"
+     (format "g++ %s.cpp -o %s -Wall -Wextra -Wshadow -O2 && ./%s < in.txt"
              file-name file-name file-name)))
   (local-set-key (kbd "C-c C-c") 'compile-and-run)
   (local-set-key (kbd "C-c C-k") 'kill-compilation))
