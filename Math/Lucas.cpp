@@ -4,8 +4,8 @@ ll lucas(ll n, ll k, int p) {
   while (n && k) {
     ll nn = n % p, kk = k % p;
     if (nn < kk) return 0;
-    ret = ret * f[nn] * mod_pow(f[kk] * f[nn - kk] % p, p - 2, p) % p;
+    ret = ret * f[nn] * mpow(f[kk] * f[nn - kk] % p, p - 2, p) % p;
     n /= p, k /= p;
   }
-  return res;
+  return ret;
 }

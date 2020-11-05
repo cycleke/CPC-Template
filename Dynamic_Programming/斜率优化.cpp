@@ -1,7 +1,6 @@
 // 树上斜率优化
-// 定义dpi 表示i节点传递到根节点的最短耗时，规定dproot=−P。
-// 有如下转移方程dpu=dpv+dist(u,v)^2+P,v is an ancestor of u.
-
+// 定义dp_i 表示i节点传递到根节点的最短耗时，规定dp_root=−P。
+// 有如下转移方程dp_u=dp_v+dist(u,v)^2+P,v 为 u 的祖先.
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -59,9 +58,8 @@ void solve() {
 }
 
 int main() {
-  // freopen("in.txt", "r", stdin);
   ios::sync_with_stdio(false);
-  cin.tie(0);
+  cin.tie(nullptr), cout.tie(nullptr);
 
   int o_o;
   for (cin >> o_o; o_o; --o_o) solve();

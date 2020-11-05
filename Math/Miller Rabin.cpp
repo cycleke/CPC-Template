@@ -1,21 +1,18 @@
-inline ll mod_mul(const ll &a, const ll &b, const ll &mod) {
+inline ll mmul(const ll &a, const ll &b, const ll &mod) {
   ll k = (ll)((1.0L * a * b) / (1.0L * mod)), t = a * b - k * mod;
-  t -= mod;
-  while (t < 0) t += mod;
+  for (t -= mod; t < 0; t += mod) {}
   return t;
 }
-inline ll mod_pow(ll a, ll b, const ll &mod) {
+inline ll mpow(ll a, ll b, const ll &mod) {
   ll res = 1;
-  for (; b; b >>= 1, a = mod_mul(a, a, mod))
-    (b & 1) && (res = mod_mul(res, a, mod));
+  for (; b; b >>= 1, a = mmul(a, a, mod)) (b & 1) && (res = mmul(res, a, mod));
   return res;
 }
 
 inline bool check(const ll &x, const ll &p) {
-  if (!(x % p) || mod_pow(p % x, x - 1, x) ^ 1) return false;
-  ll k = x - 1, t;
-  while (~k & 1) {
-    if (((t = mod_pow(p % x, k >>= 1, x)) ^ 1) && (t ^ (x - 1))) return false;
+  if (!(x % p) || mpow(p % x, x - 1, x) ^ 1) return false;
+  for (ll k = x - 1, t; ~k & 1;) {
+    if (((t = mpow(p % x, k >>= 1, x)) ^ 1) && (t ^ (x - 1))) return false;
     if (!(t ^ (x - 1))) return true;
   }
   return true;
