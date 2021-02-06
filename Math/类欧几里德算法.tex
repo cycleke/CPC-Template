@@ -1,16 +1,14 @@
-//求 f=sum((a*i+b)/c),g=sum((a*i+b)/c*i),h=sum(((a*i+b)/c)^2), for i in [0..n],
-//整除向下
-#include <bits/stdc++.h>
-#define int long long
-using namespace std;
-const int P = 998244353;
-int i2 = 499122177, i6 = 166374059;
+\subsection{类欧几里德算法}
+求 $f = \sum_{i = 0}^{n}\lfloor\frac{ai + b}{c}\rfloor, g = \sum_{i = 0}^{n}i\lfloor\frac{ai + b}{c}\rfloor, h = \sum_{i = 0}^{n}{\lfloor\frac{ai + b}{c}\rfloor}^{2}$
+\begin{lstlisting}
+const ll P = 998244353;
+ll i2 = 499122177, i6 = 166374059;
 struct data {
   data() { f = g = h = 0; }
-  int f, g, h;
+  ll f, g, h;
 }; // 三个函数打包
-data calc(int n, int a, int b, int c) {
-  int ac = a / c, bc = b / c, m = (a * n + b) / c, n1 = n + 1, n21 = n * 2 + 1;
+data calc(ll n, ll a, ll b, ll c) {
+  ll ac = a / c, bc = b / c, m = (a * n + b) / c, n1 = n + 1, n21 = n * 2 + 1;
   data d;
   if (a == 0) { // 迭代到最底层
     d.f = bc * n1 % P;
@@ -39,14 +37,4 @@ data calc(int n, int a, int b, int c) {
   d.h = (d.h % P + P) % P;
   return d;
 }
-
-int T, n, a, b, c;
-signed main() {
-  scanf("%lld", &T);
-  while (T--) {
-    scanf("%lld%lld%lld%lld", &n, &a, &b, &c);
-    data ans = calc(n, a, b, c);
-    printf("%lld %lld %lld\n", ans.f, ans.h, ans.g);
-  }
-  return 0;
-}
+\end{lstlisting}

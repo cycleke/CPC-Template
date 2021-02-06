@@ -1,0 +1,11 @@
+\subsection{原根}
+\begin{itemize}
+\item 阶：若 $(a,m) = 1$，使 $a^l \equiv 1 \pmod m$ 成立的最小的 $l$，
+  称为 $a$ 关于模 $m$ 的阶，记为 $\text{ord}_m a$。
+\item 原根：若 $(g, m) = 1, \text{ord}_m g = \varphi(m)$，则称 $g$ 为 $m$ 的一个原根。
+  若 $m$ 有原根，则 $m$ 一定是下列形式：
+  $\{2, 4, p^a, 2p^a\}$（这里 $p$ 为奇素数，$a$ 为正整数）。
+\item 求原根：设 $p_1, p_2, \cdots, p_k$ 是 $\varphi(m)$ 的所有不同的素因数，
+  则 $g$ 是 $m$ 的原根 $ \iff \forall 1 \leq i \leq k$，有 $g^{\frac{\varphi(m)}{p_i}} \not\equiv 1 \pmod m$，
+  集合 $S = {g^s \mid 1 \leq s \leq \varphi(m), (s, \varphi(m)) = 1}$ 给出 $m$ 的全部原根。
+\end{itemize}

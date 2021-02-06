@@ -1,0 +1,36 @@
+\subsection{杜教筛}
+设 $S(n) = \sum_{i = 1}^{n} f(i)$，
+则 $\sum_{i = 1}^{n} (f \ast g)(i) = \sum_{i = 1}^{n} g(i)S(\lfloor \frac{n}{i} \rfloor) \Rightarrow
+g(1)S(n) = \sum_{i = 1}^{n} (f \ast g)(i) - \sum_{i = 2}^{n} g(i)S(\lfloor \frac{n}{i} \rfloor)$。
+直接分块复杂度 $O(n^{\frac{3}{4}})$，
+预处理出前 $O(n^{\frac{2}{3}})$ 项复杂度为 $O(n^{\frac{2}{3}})$。
+常用结论：
+\begin{itemize}
+\item 莫比乌斯函数前缀和：$S(n) = \sum_{i = 1}^{n} \epsilon(i) - \sum_{i = 2}^{n}S(\lfloor \frac{n}{i} \rfloor)$
+\item 欧拉函数前缀和：$S(n) = \sum_{i = 1}^{n} id(i) - \sum_{i = 2}^{n}S(\lfloor \frac{n}{i} \rfloor)$
+\end{itemize}
+
+\begin{lstlisting}
+map<int, int> mp_mu;
+
+int S_mu(int n) {
+  if (n < MAXN) return sum_mu[n];
+  if (mp_mu[n]) return mp_mu[n];
+  int ret = 1;
+  for (int i = 2, j; i <= n; i = j + 1) {
+    j = n / (n / i);
+    ret -= S_mu(n / i) * (j - i + 1);
+  }
+  return mp_mu[n] = ret;
+}
+
+// 使用莫比乌斯反演
+ll S_phi(int n) {
+  ll res = 0;
+  for (int i = 1, j; i <= n; i = j + 1) {
+    j = n / (n / i);
+    res += 1LL * (S_mu(j) - S_mu(i - 1)) * (n / i) * (n / i);
+  }
+  return (res - 1) / 2 + 1;
+}
+\end{lstlisting}

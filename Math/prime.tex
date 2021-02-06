@@ -1,3 +1,6 @@
+\subsection{素数}
+素数的数目有近似 $\pi(x) \sim \frac{x}{\ln(x)}$，判定如下：
+\begin{lstlisting}
 inline ll mmul(const ll &a, const ll &b, const ll &mod) {
   ll k = (ll)((1.0L * a * b) / (1.0L * mod)), t = a * b - k * mod;
   for (t -= mod; t < 0; t += mod) {}
@@ -27,3 +30,4 @@ inline bool Miller_Rabin(const ll &x) {
   }
   return true;
 }
+\end{lstlisting}

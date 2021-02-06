@@ -1,3 +1,5 @@
+\subsection{Pollard Rho}
+\begin{lstlisting}
 mt19937_64 rnd(chrono::high_resolution_clock::now().time_since_epoch().count());
 inline ll rand64(ll x) { return rnd() % x + 1; }
 
@@ -23,3 +25,4 @@ void findfac(ll n) {
   while (p >= n) p = Pollard_rho(p, rand64(n));
   findfac(p), findfac(n / p);
 }
+\end{lstlisting}

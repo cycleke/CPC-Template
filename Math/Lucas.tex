@@ -1,0 +1,56 @@
+\subsection{卢卡斯定理}
+卢卡斯定理：
+$\binom{n}{m}\bmod p = \binom{\left\lfloor n/p \right\rfloor}{\left\lfloor m/p\right\rfloor}\cdot\binom{n\bmod p}{m\bmod p}\bmod p$
+\begin{lstlisting}
+ll lucas(ll n, ll m, int p) {
+  ll ret = 1;
+  while (n && m) {
+    ll nn = n % p, mm = m % p;
+    if (nn < mm) return 0;
+    ret = ret * fac[nn] % p * inv_fac[mm] % p * inv_fac[nn - mm] % p;
+    n /= p, m /= p;
+  }
+  return ret;
+}
+\end{lstlisting}
+
+拓展卢卡斯定理：用于处理 $p$ 不是质数的情况。
+
+对于 $C_n^m \bmod p$，
+我们将其转化为 $r$ 个形如 $a_i\equiv C_n^m \pmod{{q_i}^{\alpha_i}}$ 的同余方程并分别求解；
+对于 $a_i\equiv C_n^m \pmod{{q_i}^{\alpha_i}}$，
+将 $C_n^m$ 转化为 $\frac{\frac{n!}{q^x}}{\frac{m!}{q^y}\frac{(n-m)!}{q^z}}q^{x-y-z}$，可求逆元；
+对于 $\frac{m!}{q^y}$ 和 $\frac{(n-m)!}{q^z}$，将其变换整理，可递归求解。
+\begin{lstlisting}
+ll calc(ll n, ll x, ll p) {
+  if (!n) return 1;
+  ll s = 1;
+  for (ll i = 1; i <= p; ++i) (i % x) && (s = s * i % p);
+  s = mpow(s, n / p, p);
+  for (ll i = n / p * p; i <= n; ++i) (i % x) && (s = s * (i % p) % p);
+  return s * calc(n / x, x, p) % p;
+}
+
+ll multi_lucas(ll n, ll m, ll x, ll p) {
+  ll cnt = 0;
+  for (ll i = n; i; i /= x) cnt += i / x;
+  for (ll i = m; i; i /= x) cnt -= i / x;
+  for (ll i = n - m; i; i /= x) cnt -= i / x;
+  return mpow(x, cnt, p) * calc(n, x, p) % p * inv(calc(m, x, p), p) % p *
+         inv(calc(n - m, x, p), p) % p;
+}
+
+ll exlucas(ll n, ll m, ll P) {
+  ll cnt = 0;
+  static ll p[20], a[20];
+  for (ll i = 2; i * i <= P; ++i) {
+    if (P % i) continue;
+    p[cnt] = 1;
+    while (P % i == 0) p[cnt] *= i, P /= i;
+    a[cnt] = multi_lucas(n, m, i, p[cnt]);
+    ++cnt;
+  }
+  if (P > 1) p[cnt] = P, a[cnt] = multi_lucas(n, m, P, P), ++cnt;
+  return CRT(cnt, a, p);
+}
+\end{lstlisting}

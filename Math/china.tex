@@ -1,0 +1,27 @@
+\subsection{中国剩余定理}
+\begin{lstlisting}
+ll inv(ll a, ll p) {
+  ll x, y;
+  exgcd(a, p, x, y);
+  return (x + p) % p;
+}
+ll CRT(ll n, ll *a, ll *m) {
+  ll lcm = 1, res = 0;
+  for (ll i = 0; i < n; ++i) lcm *= m[i];
+  for (ll i = 0; i < n; ++i) {
+    ll t = lcm / m[i], x = inv(t, m[i]);
+    res = (res + a[i] * t % lcm * x) % lcm;
+  }
+  return res;
+}
+\end{lstlisting}
+
+模数不互质的情况
+$
+  \begin{cases}
+    x \equiv a_{1} &(\pmod m_{1}) \\
+    x \equiv a_{2} &(\pmod m_{2})
+  \end{cases}
+$，
+则转换为$m_{1}p - m_{2}q = a_{2} - a_{1}$，
+最终解（若有解）为$x \equiv m_{1}p + a_{1} \pmod{\lcm(m_{1}, m_{2})}$。

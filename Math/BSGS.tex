@@ -1,3 +1,10 @@
+\subsection{BGSG}
+大步小步算法用来求离散对数 $x^{k} \equiv a \pmod p$。
+求解 $a^{x} \equiv b \pmod p$ 则，
+令 $x = A\lceil\sqrt{p}\rceil - B, 0 \le A, B \le \lceil\sqrt{p}\rceil$，
+有 $a^{A\lceil\sqrt{p}\rceil} \equiv b a^{B} \pmod p$，
+先枚举 $A$ 之后在哈希表中查找 $B$ 就行。
+\begin{lstlisting}
 // Finds the primitive root modulo p
 int generator(int p) {
   vector<int> fact;
@@ -16,12 +23,10 @@ int generator(int p) {
         ok = false;
         break;
       }
-
     if (ok) return res;
   }
   return -1;
 }
-// This program finds all numbers x such that x^k=a (mod n)
 vector<int> BSGS(int n, int k, int a) {
   if (a == 0) return vector<int>({0});
 
@@ -51,3 +56,4 @@ vector<int> BSGS(int n, int k, int a) {
   sort(ans.begin(), ans.end());
   return ans;
 }
+\end{lstlisting}
