@@ -6,6 +6,7 @@
 \usepackage{fontenc}
 \usepackage{graphicx}
 \usepackage{geometry}
+\usepackage{helvet}
 \usepackage[colorlinks,linkcolor=black]{hyperref}
 \usepackage{indentfirst}
 \usepackage{listings}
@@ -15,37 +16,71 @@
 \usepackage{xeCJK}
 
 \xeCJKsetemboldenfactor{4}
+\setmonofont{SF Mono}
+% \setmonofont{DejaVu Sans Mono}
+\setCJKsansfont{Source Han Sans CN}
 \setCJKmainfont{Source Han Serif CN}
 \setCJKmonofont{Source Han Serif CN}
-\setCJKsansfont{Source Han Sans CN}
+
 \setlength{\parindent}{2em}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 \allowdisplaybreaks[4]
 \geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm,headheight=14pt}
+
+\definecolor{CPPLight} {HTML}{686868}
+\definecolor{CPPSteel} {HTML}{888888}
+\definecolor{CPPDark}  {HTML}{262626}
+\definecolor{CPPBlue}  {HTML}{4172A3}
+\definecolor{CPPGreen} {HTML}{487818}
+\definecolor{CPPBrown} {HTML}{A07040}
+\definecolor{CPPRed}   {HTML}{AD4D3A}
+\definecolor{CPPViolet}{HTML}{7040A0}
+\definecolor{CPPGray}  {HTML}{B8B8B8}
 \lstset{
   language    = c++,
   breaklines  = true,
+  frame       = single,
   captionpos  = b,
   tabsize     = 2,
   numbers     = left,
-  columns     = fullflexible,
+  columns     = fixed,
   keepspaces  = true,
-  commentstyle = \color[RGB]{0,128,0},
-  keywordstyle = \color[RGB]{0,0,255},
+  commentstyle = \slshape\color[RGB]{0,96,96},
+  keywordstyle = \color[RGB]{40,40,255},
   basicstyle   = \footnotesize\ttfamily,
   rulesepcolor = \color{red!20!green!20!blue!20},
+  numberstyle  = \footnotesize\color{darkgray},
+  stringstyle  = \color[RGB]{128,0,0},
+  % backgroundcolor = \color[RGB]{245,245,244},
   showstringspaces = false,
-  frame=single,
+  morekeywords={alignas,continute,friend,register,true,alignof,decltype,goto,
+    reinterpret_cast,try,asm,defult,if,return,typedef,auto,delete,inline,short,
+    typeid,bool,do,int,signed,typename,break,double,long,sizeof,union,case,
+    dynamic_cast,mutable,static,unsigned,catch,else,namespace,static_assert,using,
+    char,enum,new,static_cast,virtual,char16_t,char32_t,explict,noexcept,struct,
+    void,export,nullptr,switch,volatile,class,extern,operator,template,wchar_t,
+    const,false,private,this,while,constexpr,float,protected,thread_local,
+    const_cast,for,public,throw,std},
+  emph={map,set,multimap,multiset,unordered_map,unordered_set,
+    unordered_multiset,unordered_multimap,vector,string,list,deque,
+    array,stack,forwared_list,iostream,memory,shared_ptr,unique_ptr,
+    random,bitset,ostream,istream,cout,cin,endl,move,default_random_engine,
+    uniform_int_distribution,iterator,algorithm,functional,bing,numeric,},
+  emphstyle=\color{CPPViolet},
 }
 
 \title{cycleke（菜鸡）的 XCPC 模板}
 \author{cycleke}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[C]{XCPC 模板, cycleke}
+\fancyhead[L]{XCPC 模板}
+\fancyhead[C]{cycleke}
+\fancyhead[R]{Harbin Institute of Technology}
 
 \DeclareMathOperator{\id}{id}
 \DeclareMathOperator{\lcm}{lcm}
+\DeclareMathOperator{\lpf}{lpf}
+\DeclareMathOperator{\isprime}{isprime}
 
 
 \begin{document}
@@ -80,13 +115,13 @@
 \clearpage
 
 \input{Math/math}
-% \input{dynamic_programming}
-% \input{data_structure}
-% \input{string}
-% \input{graph}
-% \input{geometry}
-% \input{java}
-% \input{others}
+\input{Dynamic_Programming/dynamic_programming}
+\input{Data_Structure/data_structure}
+\input{String/string}
+\input{Graph/graph}
+\input{Geometry/geometry}
+\input{Java/java}
+\input{Others/others}
 
 \end{document}
 

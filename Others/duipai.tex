@@ -1,0 +1,29 @@
+\subsection{对拍}
+
+*unix 下对拍：
+\begin{lstlisting}[language=bash]
+while true; do
+  python gen.py > in.txt
+  time ./my < in.txt > out.txt
+  time ./std < in.txt > ans.txt
+  if diff out.txt ans.txt; then
+    echo AC
+  else
+    echo WA
+    exit 0
+  fi
+done
+\end{lstlisting}
+
+Windows 下对拍：
+\begin{lstlisting}[language=command.com]
+@echo off
+:loop
+python gen.py > in.txt
+my.exe < in.txt > out.txt
+std.exe < in.txt > ans.txt
+fc out.txt ans.txt
+if not errorlevel 1 goto loop
+pause
+:end
+\end{lstlisting}

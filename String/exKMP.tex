@@ -1,5 +1,7 @@
-// next[i]:x[i...m-1] 与 x[0...m-1] 的最长公共前缀
-// extend[i]:y[i...n-1] 与 x[0...m-1] 的最长公共前缀
+\subsection{拓展 KMP}
+next[i]: x[i...m-1] 与 x[0...m-1] 的最长公共前缀，
+extend[i]: y[i...n-1] 与 x[0...m-1] 的最长公共前缀
+\begin{lstlisting}
 void prework(char x[], int m, int next[]) {
   next[0] = m;
   int j = 0;
@@ -14,8 +16,7 @@ void prework(char x[], int m, int next[]) {
     else {
       j = max(0, p − i + 1);
       while (i + j < m && x[i + j] == x[j]) j++;
-      next[i] = j;
-      k = i;
+      next[i] = j, k = i;
     }
   }
 }
@@ -33,8 +34,8 @@ void exkmp(char x[], int m, char y[], int n, int next[], int extend[]) {
     else {
       j = max(0, p − i + 1);
       while (i + j < n && j < m && y[i + j] == x[j]) j++;
-      extend[i] = j;
-      k = i;
+      extend[i] = j, k = i;
     }
   }
 }
+\end{lstlisting}

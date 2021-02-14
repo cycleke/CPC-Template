@@ -1,0 +1,52 @@
+\subsection{Hopcroft 算法}
+pos 表示左边的点匹配右边哪一个，neg 反之，
+时间复杂度 $O(m\sqrt{n})$。
+\begin{lstlisting}
+vector<int> adj[MAXN];
+int nl, nr, pos[MAXN], neg[MAXN], lx[MAXN], ly[MAXN];
+
+bool dfs(int x) {
+  int c = lx[x] + 1;
+  lx[x] = -1;
+  for (int y : adj[x]) {
+    if (ly[y] != c) continue;
+    ly[y] = -1;
+    if (~neg[y] && !dfs(neg[y])) continue;
+    pos[neg[y] = x] = y;
+    return true;
+  }
+  return false;
+}
+
+int match() {
+  int cnt = 0;
+  memset(pos, -1, sizeof(int) * nl);
+  memset(neg, -1, sizeof(int) * nr);
+  for (int x = 0; x < nl; ++x)
+    for (int y : adj[x]) {
+      if (~neg[y]) continue;
+      pos[neg[y] = x] = y, ++cnt;
+      break;
+    }
+  for (;;) {
+    static int q[MAXN];
+    int l = 0, r = 0, ok = 0;
+    memset(lx, -1, sizeof(int) * nl);
+    memset(ly, -1, sizeof(int) * nr);
+    for (int x = 0; x < nl; ++x)
+      if (pos[x] < 0) lx[q[r++] = x] = 0;
+    while (l < r) {
+      int x = q[l++];
+      for (int y : adj[x]) {
+        if (~ly[y]) continue;
+        ly[y] = lx[x] + 1;
+        if (~neg[y] && ~lx[neg[y]]) continue;
+        (~neg[y]) ? lx[q[r++] = neg[y]] = ly[y] + 1 : ok = 1;
+      }
+    }
+    if (!ok) return cnt;
+    for (int x = 0; x < nl; ++x)
+      if (pos[x] < 0 && dfs(x)) ++cnt;
+  }
+}
+\end{lstlisting}

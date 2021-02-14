@@ -1,3 +1,5 @@
+\subsection{AC 自动机}
+\begin{lstlisting}
 int tr[MAX_NODE][26], fail[MAX_NODE], dep[MAX_NODE], node_c;
 
 int add_char(int u, int id) {
@@ -27,3 +29,4 @@ void build_acam() {
   }
   for (int i = 1; i < node_c; ++i) adj[fail[i]].push_back(i);
 }
+\end{lstlisting}

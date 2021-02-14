@@ -1,10 +1,11 @@
+\subsection{mancher}
+\begin{lstlisting}
 void mancher(char *s, int n) {
   static char str[2 * MAX_LENGTH];
   str[0] = '~', str[1] = '!';
   int len = 2;
   for (int i = 0; i < n; ++i) {
-    str[len++] = s[i];
-    str[len++] = '!';
+    str[len++] = s[i], str[len++] = '!';
   }
   str[len] = 0;
   for (int i = 1, id = 0, mx = 0; i < len; ++i) {
@@ -13,3 +14,4 @@ void mancher(char *s, int n) {
     if (mx < i + p[i]) id = i, mx = i + p[i];
   }
 }
+\end{lstlisting}

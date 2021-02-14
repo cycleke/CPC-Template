@@ -1,3 +1,5 @@
+\subsection{优化 STL 内存申请}
+\begin{lstlisting}
 // useage: vector<int, myalloc<int>> L;
 static char space[10000000], *sp = space;
 template <typename T> struct myalloc : allocator<T> {
@@ -14,3 +16,4 @@ template <typename T> struct myalloc : allocator<T> {
   }
   inline void deallocate(T *p, size_t n) {}
 };
+\end{lstlisting}

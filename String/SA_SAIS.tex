@@ -1,5 +1,7 @@
-// UOJ 模板题，最快算法
-// 字符串必须为正数，BUFFER_SIZE 要随 MAX_LENGTH 同步变化，1e6为25
+\subsection{后缀数组（SAIS）}
+UOJ 板题最快算法，
+字符串必须为正数，BUFFER\_SIZE 要随 MAX\_LENGTH 同步变化， 1e6 为 25。
+\begin{lstlisting}
 #include <bits/stdc++.h>
 
 const int BUFFER_SIZE = 1u << 23 | 1;
@@ -114,3 +116,4 @@ int main() {
   for (int i = 1; i < n; ++i) printf("%d%c", sa.height[i], " \n"[i == n - 1]);
   return 0;
 }
+\end{lstlisting}

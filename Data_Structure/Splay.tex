@@ -1,11 +1,5 @@
-#include <algorithm>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-using namespace std;
-
-const int MAXN = 2e5 + 10;
-
+\subsection{Splay}
+\begin{lstlisting}
 struct Node {
   long long sum;
   int id, val, lazy, size;
@@ -144,26 +138,13 @@ Node *range(int l, int r) {
   return root->ch[1]->ch[0];
 }
 
-int main() {
-
-  // freopen("input.txt", "r", stdin);
-
-  ios::sync_with_stdio(false);
-  cin.tie(0);
-  cout.tie(0);
-
-  int n;
-  cin >> n;
-
+void init() {
   pool_it = node_pool;
   nil = pool_it++;
   nil->ch[0] = nil->ch[1] = nil->fa = nil;
-  nil->id = -1;
-  nil->val = 0;
+  nil->id = -1, nil->val = 0;
   root = nil;
 
-  insert(-0x3fffffff, 0);
-  insert(0x3fffffff, 0);
-
-  return 0;
+  insert(INT_MIN, 0), insert(INT_MAX, 0);
 }
+\end{lstlisting}

@@ -1,0 +1,19 @@
+\subsection{整数划分}
+
+$f_{i, j}$ 表示选了 $i$ 种不同的数字，和为 $j$ 的方案数。
+$f_{i, j} = f_{i - 1, j - 1} + f_{i, j - i}$，
+意义：要么新选一个 1，要么前面的数都加一。
+若每个数字最多一个，$f_{i, j} = f_{i - 1, j - i} + f_{i, j - i}$。
+
+求将 $n$ 划分为若干整数的方案，则设 $g_{n}$ 为答案，
+代码如下，时间复杂度 $O(n\sqrt{n})$。
+\begin{lstlisting}
+int f[732], g[200001];
+void init() {
+  f[1] = 1, f[2] = 2, f[3] = 5, f[4] = 7;
+  for (int i = 5; i < 732; ++i) f[i] = 3 + 2 * f[i - 2] - f[i - 4];
+  for (int i = g[0] = 1; i <= n; ++i)
+    for (int j = 1; f[j] <= i; ++j)
+      g[i] = ((j + 1) >> 1 & 1) ? (g[i] + g[i - f[j]]) % MOD : (g[i] - g[i - f[j]] + MOD) % MOD;
+}
+\end{lstlisting}

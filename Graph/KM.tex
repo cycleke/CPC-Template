@@ -1,14 +1,12 @@
-#include <bits/stdc++.h>
-using namespace std;
+\subsection{KM 算法}
+点为 $1..n$（左为 $1..nl$，右为 $1..nr$），$lk$ 表示左边的点匹配右边哪一个。
 
-typedef long long ll;
-
+最大费用流时 NOT = 0，最大费用流最大流时 NOT = -1ll * MAXN * ALPHA。
+\begin{lstlisting}
 const int MAXN = 400 + 3;
 const int ALPHA = 1e9 + 10;
 const ll NOT = 0;
 const ll INF = 3ll * MAXN * ALPHA;
-// 最大费用流时 NOT = 0， 最大费用流最大流时 NOT = -1ll * MAXN * ALPHA
-// 点为 1 .. n （左为 1 .. nl， 右为 1 .. nr）
 struct KM {
   int n, nl, nr, lk[MAXN], pre[MAXN];
   ll lx[MAXN], ly[MAXN], w[MAXN][MAXN], slack[MAXN];
@@ -61,11 +59,7 @@ struct KM {
   }
 } km;
 
-int main(int argc, char *argv[]) {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr), cout.tie(nullptr);
-  cout << fixed << setprecision(10);
-
+int main() {
   int nl, nr, m;
   cin >> nl >> nr >> m;
   km.init(max(nl, nr));
@@ -79,3 +73,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+\end{lstlisting}

@@ -1,0 +1,24 @@
+\subsection{快速沃尔什变换}
+$C_{i} = \sum_{i = j \oplus k}A_{j}B_{k}$，其中 $\oplus$ 为位运算。
+\begin{lstlisting}
+void fwt(int *a, int n) {
+  for (int d = 1; d < n; d <<= 1)
+    for (int m = d << 1, i = 0; i < n; i += m)
+      for (int j = 0; j < d; ++j) {
+        int x = a[i + j], y = a[i + j + d];
+        a[i + j] = x + y;                       // AND
+        a[i + j + d] = x + y;                   // OR
+        a[i + j] = x + y, a[i + j + d] = x - y; // XOR
+      }
+}
+void ufwt(int *a, int n) {
+  for (int d = 1; d < n; d <<= 1)
+    for (int m = d << 1, i = 0; i < n; i += m)
+      for (int j = 0; j < d; ++j) {
+        int x = a[i + j], y = a[i + j + d];
+        a[i + j] = x - y;                                   // AND
+        a[i + j + d] = y - x;                               // OR
+        a[i + j] = (x + y) / 2, a[i + j + d] = (x - y) / 2; // XOR
+      }
+}
+\end{lstlisting}

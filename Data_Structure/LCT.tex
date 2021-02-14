@@ -1,15 +1,15 @@
+\subsection{LCT}
+\begin{lstlisting}
 struct LCT {
   struct node {
     int val, add;
     node *fa, *ch[2];
     void modify(const int &x) {
-      val += x;
-      add += x;
+      val += x, add += x;
     }
   } node_mset[MaxS], *cnode, *null;
   LCT() {
-    cnode = node_mset;
-    null = cnode++;
+    cnode = node_mset, null = cnode++;
     *null = (node){0, 0, null, {null, null}};
   }
   inline node *newnode() {
@@ -51,13 +51,12 @@ struct LCT {
     }
   }
   inline void cut(node *u) {
-    access(u);
-    splay(u);
+    access(u), splay(u);
     u->ch[0]->fa = null;
     u->ch[0] = null;
   }
   inline void link(node *u, node *v) {
-    cut(u);
-    u->fa = v;
+    cut(u), u->fa = v;
   }
 } tree;
+\end{lstlisting}

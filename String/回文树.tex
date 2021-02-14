@@ -1,23 +1,22 @@
-//最长双回文串
+\subsection{回文树}
+\begin{itemize}
+\item $ch[chr][x]$：$x$ 两边添加字符 $chr$ 后的回文串结点；
+\item $fail[x]$：$x$ 代表的回文串的最长回文后缀；
+\item $l[x]$：$x$ 代表的回文串的长度；
+\item $cnt[x]$：$x$ 代表的回文串的出现次数。
+\end{itemize}
+\begin{lstlisting}
 struct PT {
   char s[MAXL];
-  int fail[MAXL], ch[26][MAXL], l[MAXL], dep[MAXL], lst, nc, n;
+  int fail[MAXL], ch[26][MAXL], l[MAXL], dep[MAXL], cnt[MAXL], lst, nc, n;
   void init() {
-    l[0] = 0;
-    l[1] = -1;
+    l[0] = 0, l[1] = -1;
     fail[0] = fail[1] = 1;
-    for (int i = 0; i < 26; ++i) {
-      for (int j = 0; j < nc; ++j) { ch[i][j] = 0; }
-    }
-    for (int i = 2; i < nc; ++i) {
-      l[i] = 0;
-      fail[i] = 0;
-    }
+    for (int i = 0; i < 26; ++i)
+      for (int j = 0; j < nc; ++j) ch[i][j] = 0;
+    for (int i = 2; i < nc; ++i) l[i] = 0, fail[i] = 0;
 
-    lst = 0;
-    nc = 2;
-    n = 0;
-    s[0] = '#';
+    lst = 0, nc = 2, n = 0, s[0] = '#';
   }
 
   int insert(char c) {
@@ -33,11 +32,14 @@ struct PT {
       ch[id][lst] = nc;
       ++nc;
     }
-    lst = ch[id][lst];
+    ++cnt[lst = ch[id][lst]];
     return lst;
   }
+
+  void count() { for (int i = nc - 1; ~i; --i) cnt[fail[i]] += cnt[i]; }
 } pt;
 
+// 求最长双回文串
 char S[MAXL];
 int len[MAXL];
 int main() {
@@ -58,3 +60,4 @@ int main() {
 
   return 0;
 }
+\end{lstlisting}

@@ -25,3 +25,20 @@ $
 $，
 则转换为$m_{1}p - m_{2}q = a_{2} - a_{1}$，
 最终解（若有解）为$x \equiv m_{1}p + a_{1} \pmod{\lcm(m_{1}, m_{2})}$。
+
+拓展中国剩余定理：
+\begin{lstlisting}
+int exctr(int n, int *a, int *m) {
+  int M = m[0], res = a[0];
+  for (int i = 1; i < n; ++i) {
+    int a = M, b = m[i], c = (a[i] - res % b + b) % b, x, y;
+    int g = exgcd(a, b, x, y), bg = b / g;
+    if (c % g != 0) return -1;
+    x = 1LL * x * (c / g) % bg;
+    res += x * M;
+    M *= bg;
+    res = (res % M + M) % M;
+  }
+  return res;
+}
+\end{lstlisting}

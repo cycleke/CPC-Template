@@ -1,13 +1,8 @@
-// 树上斜率优化
-// 定义dp_i 表示i节点传递到根节点的最短耗时，规定dp_root=−P。
-// 有如下转移方程dp_u=dp_v+dist(u,v)^2+P,v 为 u 的祖先.
-#include <bits/stdc++.h>
-using namespace std;
-
-typedef long long ll;
-typedef pair<int, int> pii;
-const int MAXN = 1e5 + 5;
-
+\subsection{斜率优化}
+树上斜率优化，
+定义 $dp_i$ 表示 $i$ 节点传递到根节点的最短耗时，规定 $dp_{root}=−P$，
+有如下转移方程 $dp_u=dp_v+{dist(u,v)}^2+P$，$v$ 为 $u$ 的祖先。
+\begin{lstlisting}
 vector<pii> adj[MAXN];
 ll dp[MAXN], d[MAXN];
 int n, p, q[MAXN], head, tail;
@@ -56,13 +51,4 @@ void solve() {
     if (dp[i] > ans) ans = dp[i];
   cout << ans << '\n';
 }
-
-int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr), cout.tie(nullptr);
-
-  int o_o;
-  for (cin >> o_o; o_o; --o_o) solve();
-
-  return 0;
-}
+\end{lstlisting}

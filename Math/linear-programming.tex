@@ -1,0 +1,536 @@
+\subsection{线性规划}
+给定 n 个约束条件， m 个未知数， 求 $\sum(a[0][i] \times x[i])$ 的最大值，
+约束条件： $\sum(-a[i][j] \times x[j]) \le a[i][0]$。
+若要求最小值，则进行对偶：
+即把目标函数的系数和约束条件右边的数交换，然后把矩阵转置。
+\begin{lstlisting}
+const int MAXN = 3e3 + 3, MAXM = 3e3 + 3, INF = ~0U >> 2;
+int n, m, a[MAXN][MAXM], nxt[MAXM];
+void pivot(int l, int e) {
+  a[l][e] = -1;
+  int t = MAXM - 1;
+  for (int i = 0; i <= m; ++i)
+    if (a[l][i]) nxt[t] = i, t = i;
+  nxt[t] = -1;
+  for (int i = 0; i <= n; ++i)
+    if (i != l && (t = a[i][e])) {
+      a[i][e] = 0;
+      for (int j = nxt[MAXM - 1]; ~j; j = nxt[j]) a[i][j] += a[l][j] * t;
+    }
+}
+int simplex() {
+  for (;;) {
+    int mi = INF, l = 0, e = 0;
+    for (int i = 1; i <= m; ++i)
+      if (a[0][i] > 0) {
+        e = i;
+        break;
+      }
+    if (!e) return a[0][0];
+    for (int i = 1; i <= n; ++i)
+      if (a[i][e] < 0 && a[i][0] < mi) mi = a[i][0], l = i;
+    pivot(l, e);
+  }
+}
+\end{lstlisting}
+
+\subsection{实数线性规划}
+求 $\max\{c\vec{x} | A\vec{x} <= b, \vec{x} >= 0\}$。
+\begin{lstlisting}
+typedef vector<double> VD;
+VD simplex(vector<VD> A, VD b, VD c) {
+  int n = A.size(), m = A[0].size() + 1, r = n, s = m - 1;
+  vector<VD> D(n + 2, VD(m + 1, 0));
+  vector<int> ix(n + m);
+  for (int i = 0; i < n + m; ++i) ix[i] = i;
+  for (int i = 0; i <= n; ++i) {
+    for (int j = 0; j < m - 1; ++j) D[i][j] = -A[i][j];
+    D[i][m - 1] = 1, D[i][m] = b[i];
+    if (D[r][m] > D[i][m]) r = i;
+  }
+  for (int j = 0; j < m - 1; ++j) D[n][j] = c[j];
+  D[n + 1][m - 1] = -1;
+  for (double d;;) {
+    if (r < n) {
+      swap(ix[s], ix[r + m]);
+      D[r][s] = 1 / D[r][s];
+      vector<int> speed_up;
+      for (int j = 0; j <= m; ++j)
+        if (j != s) {
+          D[r][j] *= -D[r][s];
+          if (D[r][j]) speed_up.push_back(j);
+        }
+      for (int i = 0; i <= n + 1; ++i)
+        if (i != r) {
+          for (int j : speed_up) D[i][j] += D[r][j] * D[i][s];
+          D[i][s] *= D[r][s];
+        }
+    }
+    r = -1, s = -1;
+    for (int j = 0; j < m; ++j)
+      if ((s < 0 || ix[s] > ix[j]) &&
+          (D[n + 1][j] > EPS || (D[n + 1][j] > -EPS && D[n][j] > EPS)))
+        s = j;
+    if (s < 0) break;
+    for (int i = 0; i < n; ++i)
+      if (D[i][s] < -EPS)
+        if (r < 0 || (d = D[r][m] / D[r][s] - D[i][m] / D[i][s]) < -EPS ||
+            (d < EPS && ix[r + m] > ix[i + m]))
+          r = i;
+    if (r < 0) return VD(); //无边界
+  }
+  if (D[n + 1][m] < -EPS) return VD(); // 无解
+  VD x(m - 1);
+  for (int i = m; i < n + m; ++i)
+    if (ix[i] < m - 1) x[ix[i]] = D[i - m][m];
+  return x; // 最优值在D[n][m]
+}
+\end{lstlisting}
+
+UOJ 板题最快榜代码：
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+
+#define eps 1e-7
+int simplex(vector<vector<double>> &a, vector<double> &b, vector<double> &c,
+            vector<int> &basic) {
+  int m = b.size(), n = c.size();
+  while (true) {
+    int k = -1;
+    for (int j = 0; j < n; ++j)
+      if (c[j] < -eps) {
+        k = j;
+        break;
+      }
+    if (k == -1) {
+      double ans = 0;
+      for (int i = 0; i < m; ++i) ans += c[basic[i]] * b[i];
+      return 0;
+    }
+    int l = -1;
+    for (int i = 0; i < m; ++i)
+      if (a[i][k] > eps) {
+        if (l == -1)
+          l = i;
+        else {
+          double ti = b[i] / a[i][k], tl = b[l] / a[l][k];
+          if (ti < tl - eps || (ti < tl + eps && basic[i] < basic[l])) l = i;
+        }
+      }
+    if (l == -1) return -1;
+    basic[l] = k;
+    double tmp = 1 / a[l][k];
+    for (int j = 0; j < n; ++j) a[l][j] *= tmp;
+    b[l] *= tmp;
+    for (int i = 0; i < m; ++i)
+      if (i != l) {
+        tmp = a[i][k];
+        for (int j = 0; j < n; ++j) a[i][j] -= tmp * a[l][j];
+        b[i] -= tmp * b[l];
+      }
+    tmp = c[k];
+    for (int j = 0; j < n; ++j) c[j] -= tmp * a[l][j];
+  }
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  int n, m, T;
+  cin >> n >> m >> T;
+  vector<double> c(n + m, 0);
+  for (int i = 0; i < n; ++i) {
+    cin >> c[i];
+    c[i] *= -1;
+  }
+  auto C = c;
+  vector<vector<double>> a(m, vector<double>(n + m, 0));
+  vector<double> b(m);
+  vector<int> basic(m, -1), tmp;
+  for (int i = 0; i < m; ++i) {
+    for (int j = 0; j < n; ++j) cin >> a[i][j];
+    a[i][i + n] = 1;
+    cin >> b[i];
+    if (b[i] > -eps)
+      basic[i] = i + n;
+    else
+      tmp.push_back(i);
+  }
+  if (!tmp.empty()) {
+    sort(tmp.begin(), tmp.end(), [&](int i, int j) { return b[i] > b[j]; });
+    vector<vector<double>> A;
+    vector<double> B, C(n + m + 1, 0);
+    vector<int> Basic;
+    for (int i : tmp) {
+      vector<double> foo;
+      for (int j = 0; j < n + m; ++j) foo.push_back(-a[i][j]);
+      foo.push_back(1);
+      double bar = -b[i];
+      for (int i = 0; i < A.size(); ++i) {
+        double tmp = foo[Basic[i]];
+        for (int j = 0; j <= n + m; ++j) foo[j] -= tmp * A[i][j];
+        bar -= tmp * B[i];
+      }
+      for (int j = n + m; j >= 0; --j)
+        if (-eps < foo[j] - 1 && foo[j] - 1 < eps) {
+          Basic.push_back(j);
+          break;
+        }
+      for (int i = 0; i < A.size(); ++i) {
+        double tmp = A[i][Basic.back()];
+        for (int j = 0; j <= n + m; ++j) A[i][j] -= tmp * foo[j];
+        B[i] -= tmp * bar;
+      }
+      A.push_back(foo);
+      B.push_back(bar);
+    }
+    for (int i = 0; i < A.size(); ++i)
+      if (Basic[i] == n + m) {
+        for (int j = 0; j < n + m; ++j) C[j] = -A[i][j];
+      }
+    for (int i = 0; i < m; ++i)
+      if (b[i] > -eps) {
+        A.push_back(a[i]);
+        A[A.size() - 1].push_back(0);
+        B.push_back(b[i]);
+        Basic.push_back(basic[i]);
+      }
+    simplex(A, B, C, Basic);
+    bool flag = true;
+    for (int i = 0; i < m; ++i)
+      if (Basic[i] == n + m) {
+        if (B[i] > eps) {
+          cout << "Infeasible\n";
+          return 0;
+        }
+        int k = -1;
+        for (int j = 0; j < n + m; ++j)
+          if (A[i][j] > eps || A[i][j] < -eps) {
+            k = j;
+            break;
+          }
+        if (k != -1) {
+          double tmp = 1 / A[i][k];
+          Basic[i] = k;
+          for (int j = 0; j <= n + m; ++j) A[i][j] *= tmp;
+          B[i] *= tmp;
+          for (int l = 0; l < m; ++l)
+            if (l != i) {
+              tmp = A[l][k];
+              for (int j = 0; j <= n + m; ++j) A[l][j] -= tmp * A[i][j];
+              B[l] -= tmp * B[i];
+            }
+        } else
+          flag = false;
+        break;
+      }
+    if (flag) {
+      A.push_back(vector<double>(n + m, 0));
+      A[A.size() - 1].push_back(1);
+      B.push_back(0);
+      Basic.push_back(n + m);
+      for (int i = 0; i < A.size() - 1; ++i) {
+        double tmp = A[i].back();
+        for (int j = 0; j <= n + m; ++j) A[i][j] -= tmp * A[A.size() - 1][j];
+        B[i] -= tmp * B.back();
+      }
+    }
+    a = A;
+    b = B;
+    basic = Basic;
+    c.push_back(0);
+    for (int i = 0; i < a.size(); ++i) {
+      double tmp = c[basic[i]];
+      for (int j = 0; j <= n + m; ++j) c[j] -= tmp * a[i][j];
+    }
+  }
+  auto foo = simplex(a, b, c, basic);
+  if (foo == -1)
+    cout << "Unbounded" << endl;
+  else {
+    double res = 0;
+    vector<double> ans(n, 0);
+    for (int i = 0; i < basic.size(); ++i)
+      if (basic[i] < n) ans[basic[i]] = b[i];
+    for (int j = 0; j < n; ++j) res -= C[j] * ans[j];
+    cout << setprecision(8) << res << endl;
+    if (T == 1) {
+      for (int i = 0; i < n; ++i) cout << setprecision(8) << ans[i] << ' ';
+      cout << endl;
+    }
+  }
+  return 0;
+}
+\end{lstlisting}
+
+CCPC Final 2017 F：
+有 N 组人，每组有 $a_{i}$ 人，可进行若干次选择，
+每次选择一些至少有 M 人的组，这些人都中奖。
+现在要使每个人中奖概率相等，且中奖概率最大
+$N \le 10, M, a_{i} \le 100$。
+两种 LP 写法：
+
+\begin{lstlisting}
+const int MAXN = int(3e3);
+const int MAXM = int(3e3);
+const double INF = 1e20, EPS = 1e-9;
+
+int n, m;
+double a[MAXM][MAXN], v;
+
+void pivot(int l, int e) {
+  int i, j;
+  a[l][e] = 1 / a[l][e];
+  for (j = 0; j <= n; ++j)
+    if (j != e) a[l][j] *= a[l][e];
+  for (i = 1; i <= m; ++i)
+    if (i != l && fabs(a[i][e]) > EPS) {
+      for (j = 0; j <= n; ++j)
+        if (j != e) a[i][j] -= a[i][e] * a[l][j];
+      a[i][e] = -a[i][e] * a[l][e];
+    }
+  v += a[0][e] * a[l][0];
+  for (j = 1; j <= n; ++j)
+    if (j != e) a[0][j] -= a[0][e] * a[l][j];
+  a[0][e] = -a[0][e] * a[l][e];
+}
+
+double simplex() {
+  int e, l, i;
+  double mn;
+  v = 0;
+  while (true) {
+    for (e = 1; e <= n; ++e)
+      if (a[0][e] > EPS) break;
+    if (e > n) return v;
+    for (i = 1, mn = INF; i <= m; ++i)
+      if (a[i][e] > EPS && mn > a[i][0] / a[i][e])
+        mn = a[i][0] / a[i][e], l = i;
+    if (mn == INF) return INF;
+    pivot(l, e);
+  }
+}
+
+void solve() {
+  static int n, m, g[10];
+  static vector<int> con[10], able;
+  scanf("%d %d", &n, &m);
+  for (int i = 0; i < n; ++i) {
+    scanf("%d", g + i);
+    con[i].clear();
+  }
+  if (n == 1) {
+    printf("%.10f\n", m >= g[0] ? 1. : 0.);
+    return;
+  }
+  able.clear();
+  for (int s = 0, S = 1 << n; s < S; ++s) {
+    int sum = 0;
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) sum += g[i];
+    if (sum > m) continue;
+    able.push_back(s);
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) con[i].push_back(able.size());
+  }
+  ::n = able.size();
+  ::m = 0;
+  static random_device rd;
+  mt19937 gen(rd());
+  shuffle(able.begin(), able.end(), gen);
+  for (int step = 0; step < n; ++step) {
+    int f = ++::m;
+    for (int i = 0; i <= ::n; ++i) a[f][i] = 0;
+    for (int x : con[step]) ++a[f][x];
+    if (step + 1 < n) {
+      for (int x : con[step + 1]) --a[f][x];
+    } else {
+      for (int x : con[0]) --a[f][x];
+    }
+  }
+
+  ++::m;
+  a[::m][0] = 1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = 1;
+
+  ++::m;
+  a[::m][0] = -1;
+  for (int i = 1; i <= ::n; ++i) a[::m][i] = -1;
+
+  for (int i = 0; i <= ::n; ++i) a[0][i] = 0;
+  for (int x : con[0]) ++a[0][x];
+  printf("%.10f\n", simplex());
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+const int MAXN = 3000;
+const int MAXM = 3000;
+const db EPS = 1e-9;
+const db INF = 1e200;
+
+namespace LP {
+db a[MAXM][MAXN];
+int idA[MAXN], idB[MAXN];
+int m, n;
+
+void put_out(int x) {
+  if (x == 0)
+    printf("Infeasible\n");
+  else
+    printf("Unbounded\n");
+  exit(0);
+}
+void pivot(int xA, int xB) {
+  swap(idA[xA], idB[xB]);
+  static int next[MAXN];
+  int i, j, last = MAXN - 1;
+  db tmp = -a[xB][xA];
+  a[xB][xA] = -1.0;
+  for (j = 0; j <= n; j++)
+    if (fabs(a[xB][j]) > EPS) a[xB][last = next[last] = j] /= tmp;
+  next[last] = -1;
+
+  for (i = 0; i <= m; i++)
+    if (i != xB && fabs(tmp = a[i][xA]) > EPS)
+      for (a[i][xA] = 0.0, j = next[MAXN - 1]; ~j; j = next[j])
+        a[i][j] += tmp * a[xB][j];
+}
+db calc() {
+  int xA, xB;
+  db Max, tmp;
+  while (1) {
+    xA = n + 1, idA[xA] = n + m + 1;
+    for (int i = 1; i <= n; i++)
+      if (a[0][i] > EPS && idA[i] < idA[xA]) xA = i;
+
+    if (xA == n + 1) return a[0][0];
+    xB = m + 1, idB[xB] = n + m + 1, Max = -INF;
+    for (int i = 1; i <= m; i++)
+      if (a[i][xA] < -EPS && ((tmp = a[i][0] / a[i][xA]) > Max + EPS ||
+                              (tmp > Max - EPS && idB[i] < idB[xB])))
+        Max = tmp, xB = i;
+    if (xB == m + 1) put_out(1);
+    pivot(xA, xB);
+  }
+  return a[0][0];
+}
+db solve() {
+  for (int i = 1; i <= n; i++) idA[i] = i;
+  for (int i = 1; i <= m; i++) idB[i] = n + i;
+  static db tmp[MAXN];
+  db Min = 0.0;
+  int l;
+  for (int i = 1; i <= m; i++)
+    if (a[i][0] < Min) Min = a[i][0], l = i;
+  if (Min > -EPS) return calc();
+
+  idA[++n] = 0;
+  for (int i = 1; i <= m; i++) a[i][n] = 1.0;
+  for (int i = 0; i <= n; i++) tmp[i] = a[0][i], a[0][i] = 0.0;
+  a[0][n] = -1.0;
+
+  pivot(n, l);
+  if (calc() < -EPS) put_out(0);
+  for (int i = 1; i <= m; i++)
+    if (!idB[i]) {
+      for (int j = 1; j <= n; j++)
+        if (fabs(a[0][j]) > EPS) {
+          pivot(j, i);
+          break;
+        }
+      break;
+    }
+
+  int xA;
+  for (xA = 1; xA <= n; xA++)
+    if (!idA[xA]) break;
+  for (int i = 0; i <= m; i++) a[i][xA] = a[i][n];
+  idA[xA] = idA[n], n--;
+
+  for (int i = 0; i <= n; i++) a[0][i] = 0.0;
+  for (int i = 1; i <= m; i++)
+    if (idB[i] <= n) {
+      for (int j = 0; j <= n; j++) a[0][j] += a[i][j] * tmp[idB[i]];
+    }
+
+  for (int i = 1; i <= n; i++)
+    if (idA[i] <= n) a[0][i] += tmp[idA[i]];
+  return calc();
+}
+db ans[MAXN];
+void findAns() {
+  for (int i = 1; i <= n; i++) ans[i] = 0.0;
+  for (int i = 1; i <= m; i++)
+    if (idB[i] <= n) ans[idB[i]] = a[i][0];
+}
+void work() {
+  for (int i = 1; i <= m; ++i)
+    for (int j = 1; j <= n; ++j) a[i][j] *= -1;
+  printf("%.10f\n", -double(solve()));
+}
+} // namespace LP
+
+void solve() {
+  static int n, m, g[10];
+  static vector<int> con[10], able;
+
+  scanf("%d %d", &n, &m);
+  for (int i = 0; i < n; ++i) {
+    scanf("%d", g + i);
+    con[i].clear();
+  }
+  if (n == 1) {
+    printf("%.10f\n", m >= g[0] ? 1.0 : 0.0);
+    return;
+  }
+  able.clear();
+  for (int s = 0; s < (1 << n); ++s) {
+    int sum = 0;
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) sum += g[i];
+    if (sum > m) continue;
+    able.push_back(s);
+    for (int i = 0; i < n; ++i)
+      if (s >> i & 1) con[i].push_back(able.size());
+  }
+
+  LP::n = able.size(), LP::m = 0;
+  for (int step = 0; step < n; ++step) {
+    int &f = ++LP::m;
+    for (int i = 0; i <= LP::n; ++i) LP::a[f][i] = 0;
+    for (int x : con[step]) ++LP::a[f][x];
+    if (step + 1 < n) {
+      for (int x : con[step + 1]) --LP::a[f][x];
+    } else {
+      for (int x : con[0]) --LP::a[f][x];
+    }
+  }
+
+  ++LP::m;
+  LP::a[LP::m][0] = 1;
+  for (int i = 1; i <= LP::n; ++i) LP::a[LP::m][i] = 1;
+
+  ++LP::m;
+  LP::a[LP::m][0] = -1;
+  for (int i = 1; i <= LP::n; ++i) LP::a[LP::m][i] = -1;
+
+  for (int i = 0; i <= LP::n; ++i) LP::a[0][i] = 0;
+  for (int x : con[0]) ++LP::a[0][x];
+
+  static db a2[MAXM][MAXN];
+  for (int i = 1; i <= LP::m; ++i)
+    for (int j = 1; j <= LP::n; ++j) a2[i][j] = LP::a[i][j];
+  for (int i = 1; i <= LP::m; ++i)
+    for (int j = 1; j <= LP::n; ++j) LP::a[j][i] = a2[i][j];
+  swap(LP::n, LP::m);
+  for (int i = 1; i <= max(LP::n, LP::m); ++i) swap(LP::a[0][i], LP::a[i][0]);
+  LP::a[0][0] = 0;
+  for (int i = 1; i <= LP::m; ++i)
+    for (int j = 1; j <= LP::n; ++j) LP::a[i][j] *= -1;
+  for (int i = 1; i <= LP::m; ++i) LP::a[i][0] *= -1;
+  for (int i = 1; i <= LP::n; ++i) LP::a[0][i] *= -1;
+
+  LP::work();
+}
+\end{lstlisting}

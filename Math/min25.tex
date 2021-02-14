@@ -1,0 +1,289 @@
+\subsection{Min\_25 筛}
+要求：积性函数 $f(p)$ 是一个关于 $p$ 的项数较少的多项式或可以快速求值；$f(p^{c})$ 可以快速求值。
+时间复杂度：$O\left(\frac{n^{\frac{3}{4}}}{\log{n}}\right)$。
+部分符号和结论：
+\begin{itemize}
+\item $F_{\mathrm{prime}}(n) = \sum_{2 \le p \le n} f(p)$
+\item $F_{k}(n) = \sum_{i = 2}^{n} [p_{k} \le \lpf(i)] f(i)$，
+  答案为 $F_{1}(n) + f(1)$
+\item $F_{k}(n) = \sum_{\substack{k \le i \\ p_{i}^{2} \le n}} \sum_{\substack{c \ge 1 \\ p_{i}^{c + 1} \le n}} (f(p_{i}^{c}) F_{i + 1}(n / p_{i}^{c}) +
+  f(p_{i}^{c + 1})) + F_{\mathrm{prime}}(n) - F_{\mathrm{prime}}(p_{k - 1})$
+\item 若 $f(p) = \sum p^{s_{i}}$，
+  设 $g(p) = p^{s}, G_{k}(n) = \sum_{i = 1}^{n} [p_{k} < \lpf(i) \lor \isprime(i)] g(i)$
+\item $G_{k}(n) = G_{k - 1}(n) - [p_{k}^{2} \le n] g(p_{k}) (G_{k - 1}(n / p_{k}) - G_{k - 1}(p_{k - 1})), G_{0} = \sum_{i = 2}^{n} g(i)$
+\end{itemize}
+
+LOJ 例题：给定 $f(n)$：
+$f(n) = \begin{cases} 1 & n = 1 \\ p \oplus c & n = p^{c} \\ f(a)f(b) & n = ab \land a \perp b \end{cases}$，
+求 $f(n)$ 的和。
+因 $f(p) = p - 1 + 2[p = 2]$，可以按照筛 $\varphi$ 的方法来处理。
+\begin{lstlisting}
+constexpr int MOD = 1e9 + 7;
+constexpr int INV2 = MOD / 2 + 1;
+
+template <typename X, typename Y> void inc(X &x, const Y &y) { x += y, (x >= MOD) && (x -= MOD); }
+template <typename X, typename Y> void dec(X &x, const Y &y) { x -= y, (x < 0) && (x += MOD); }
+template <typename X, typename Y> int sum(X x, Y y) { return x + y < MOD ? x + y : x + y - MOD; }
+template <typename X, typename Y> int sub(X x, Y y) { return x < y ? x + MOD - y : x - y;}
+
+constexpr int MAX_SIZE = 2e5 + 3;
+int prime[MAX_SIZE / 10], lpf[MAX_SIZE], spri[MAX_SIZE], prime_cnt;
+
+void sieve(int n) {
+  for (int i = 2; i <= n; ++i) {
+    if (lpf[i] == 0) {
+      prime[lpf[i] = ++prime_cnt] = i;
+      spri[prime_cnt] = sum(spri[prime_cnt - 1], i);
+    }
+    for (int j = 1, x; j <= lpf[i] && (x = i * prime[j]) <= n; ++j) lpf[x] = j;
+  }
+}
+
+ll g_n, lis[MAX_SIZE];
+int G[MAX_SIZE][2], Fprime[MAX_SIZE], cnt;
+int lim, le[MAX_SIZE], ge[MAX_SIZE];
+#define idx(x) (x <= lim ? le[x] : ge[g_n / x])
+
+void init(ll n) {
+  for (ll i = 1, j, x; i <= n; i = n / j + 1) {
+    j = n / i, x = j % MOD;
+    lis[++cnt] = j, idx(j) = cnt;
+    G[cnt][0] = sub(x, 1);
+    G[cnt][1] = (x + 2ll) * (x - 1ll) % MOD * INV2 % MOD;
+  }
+}
+void calcFPrime() {
+  for (int k = 1; k <= prime_cnt; ++k) {
+    const int p = prime[k];
+    const ll sqrp = 1ll * p * p;
+    for (int i = 1; lis[i] >= sqrp; ++i) {
+      const ll x = lis[i] / p;
+      const int id = idx(x);
+      dec(G[i][0], sub(G[id][0], k - 1));
+      dec(G[i][1], 1ll * p * sub(G[id][1], spri[k - 1]) % MOD);
+    }
+  }
+  // f(p) = g_1(p) - g_0(p)
+  for (int i = 1; i <= cnt; ++i) Fprime[i] = sub(G[i][1], G[i][0]);
+}
+
+int f_p(int p, int c) { return p ^ c; }
+int F(int k, ll n) {
+  if (n < prime[k] || n <= 1) return 0;
+  const int id = idx(n);
+  int res = sub(Fprime[id], sub(spri[k - 1], k - 1));
+  // F_prime(p_{k - 1}) = spri[k - 1] - (k - 1)
+  if (k == 1) res += 2; // 特殊处理 f(2)
+  for (int i = k; i <= prime_cnt && 1ll * prime[i] * prime[i] <= n; ++i) {
+    ll pw = prime[i], pw2 = pw * pw;
+    for (int c = 1; pw2 <= n; ++c, pw = pw2, pw2 *= prime[i])
+      inc(res, (1ll * f_p(prime[i], c) * F(i + 1, n / pw) + f_p(prime[i], c + 1)) % MOD);
+  }
+  return res;
+}
+\end{lstlisting}
+
+\href{https://zhuanlan.zhihu.com/p/60378354}{新版 min25 筛}，复杂度 $O\left(n^{\frac{2}{3}}\right)$。
+\begin{lstlisting}
+/******************************
+f()函数中(31-37行) 填函数在质数幂次处的表达式
+pow_sum()函数中(38-43行) 填幂和函数（如果需要更高次的话可以在这里添加）
+202-205行按要求填写
+f_p[][0/1/2/3/...]分别代表质数个数/质数和/质数平方和/质数三次方和/...根据自己需要添加
+例：如果该函数在质数处表达式为f(p) =
+p^2+3*p+1，则表明需要质数个数/质数和/质数平方和，即f_p[][0],f_p[][1],f_p[][2]
+******************************/
+
+inline ll f(ll p, int e) { // return f(p^e)
+  if (p == 1 || e == 0) return 1;
+  ll res = mpow(p, e);
+  return res * res + 3 * res + 1;
+}
+ll pow_sum(ll n, int k) { return sum(i^k),i from 1 to n.
+  if (k == 0) return n;
+  if (k == 1) return n * (n + 1) / 2;
+  if (k == 2) return n * (n + 1) * (2 * n + 1) / 6;
+}
+ll n, f_p[maxn][3]; // F_prime(id(n/i))
+int n_2, n_3, n_6;  // sqrt(n), sqrt3(n), sqrt6(n);
+ll val_id[maxn];    // give the id, return the id-th number like 'n/i' ,(val_id[1] = 1)
+int val_id_num;     // how many numbers like 'n/i'
+int val_id_num_3;   // how many numbers like 'n/i' below n/n_3;
+int p[200000 + 100];
+bool isp[maxn];
+int p_sz_2, p_sz_3, p_sz_6; // pi(n_2), pi(n_3), pi(n_6)
+void init() {
+  n_2 = (int)sqrt(n);
+  n_3 = (int)pow(n, 1.0 / 3.0);
+  n_6 = (int)pow(n, 1.0 / 6.0);
+  val_id_num = 0;
+  for (ll i = 1; i <= n;) {
+    val_id[++val_id_num] = i;
+    if (i < n) i = n / (n / (i + 1));
+  }
+  memset(isp, 1, sizeof isp);
+  isp[1] = 0;
+  for (int i = 2; i <= n_2; i++) {
+    if (isp[i]) {
+      p[++p_sz_2] = i;
+      if (i <= n_3) p_sz_3++;
+      if (i <= n_6) p_sz_6++;
+    }
+    for (int j = 1; j <= p_sz_2 && p[j] * i <= n_2; j++) {
+      isp[i * p[j]] = 0;
+      if (i % p[j] == 0) break;
+    }
+  }
+}
+inline int get_id(ll k) { // give a number like 'n/i', return the id of it
+  return k > n_2 ? val_id_num - n / k + 1 : k;
+}
+ll c[maxn];
+void add(int x, ll d) { for (; x < maxn; x += x & -x) c[x] += d; }
+ll sum(int x) {
+  ll ans = 0;
+  for (; x; x &= x - 1) ans += c[x];
+  return ans;
+}
+
+struct node {
+  int k_max;
+  ll val, f_val;
+};
+void update_bfs(int k, int type) {
+  queue<node> q;
+  while (!q.empty()) q.pop();
+  int e = 1;
+  for (ll i = p[k]; i < n / n_3; i *= p[k], ++e)
+    q.emplace(k, i, type == -1 ? f(p[k], e) : mpow(i, type));
+  while (!q.empty()) {
+    node hd = q.front(); q.pop();
+    if ((hd.val != p[hd.k_max] && type >= 0) || type == -1) {
+      ll w = n / hd.val;
+      w = n / w;
+      if (type == -1) {
+        add(get_id(w), hd.f_val);
+        add(val_id_num + 1, -1ll * hd.f_val);
+      } else {
+        add(get_id(w), -1ll * hd.f_val);
+        add(val_id_num + 1, hd.f_val);
+      }
+    }
+    for (int i = hd.k_max + 1; hd.val * p[i] < n / n_3 && i <= p_sz_2; i++) {
+      ll res = p[i];
+      for (int e = 1;; e++) {
+        if (hd.val * res < n / n_3) {
+          q.emplace(i, hd.val * res, type == -1 ? hd.f_val * f(p[i], e) : hd.f_val * mpow(res, type));
+        } else break;
+        res *= p[i];
+      }
+    }
+  }
+}
+void get_f_p(ll n, int times) {
+  for (int i = 1; i <= val_id_num; i++)
+    for (int j = 0; j <= times; j++)
+      f_p[i][j] = pow_sum(val_id[i], j) - 1;
+  int now;
+  for (now = 1; p[now] <= n_6; now++) {
+    for (int j = val_id_num; j >= 1; j--) {
+      ll w = val_id[j] / p[now];
+      if (w < p[now]) break;
+      ll val = 1;
+      for (int k = 0; k <= times; k++) {
+        f_p[j][k] = f_p[j][k] - val * (f_p[get_id(w)][k] - f_p[p[now - 1]][k]);
+        val *= p[now];
+      }
+    }
+  }
+  int nnow = now, val = 1;
+  for (int tt = 0; tt <= times; tt++) {
+    now = nnow;
+    memset(c, 0, sizeof c);
+    add(1, f_p[1][tt]);
+    for (int i = 2; val_id[i] < n / n_3; i++) add(i, f_p[i][tt] - f_p[i - 1][tt]);
+    for (; p[now] <= n_3; now++) {
+      for (int j = val_id_num; j >= 1; j--) {
+        ll w = val_id[j] / p[now];
+        if (val_id[j] < n / n_3) break;
+        if (w < p[now]) break;
+        f_p[j][tt] = w < n / n_3
+          ? (f_p[j][tt] - (sum(get_id(w)) - sum(p[now - 1])) * mpow(p[now], tt))
+          : f_p[j][tt] = f_p[j][tt] - (f_p[get_id(w)][tt] - sum(p[now - 1])) * mpow(p[now], tt);
+      }
+      update_bfs(now, tt);
+    }
+    for (int i = 1; i <= val_id_num && val_id[i] < n / n_3; i++) f_p[i][tt] = sum(i);
+    for (; now <= p_sz_2; now++) {
+      for (int j = val_id_num; j >= 1; j--) {
+        ll w = val_id[j] / p[now];
+        if (val_id[j] < n / n_3) break;
+        if (w < p[now]) break;
+        f_p[j][tt] -= (f_p[get_id(w)][tt] - f_p[p[now - 1]][tt]) * mpow(p[now], tt);
+      }
+    }
+  }
+
+  for (int i = 1; i <= val_id_num; i++) {
+    // if f(p) = p^2+3p+1,then write: f_p[i][0] = f_p[i][2] + 3*f_p[i][1] + f_p[i][0];
+    f_p[i][0] = f_p[i][2] + 3 * f_p[i][1] + f_p[i][0];
+  }
+}
+ll F[2000000 + 100];
+void get_f_3(ll n) { // V(F_{pi(n^(1/3))+1},n)
+  ll q = p[p_sz_3 + 1];
+  for (int now = 1; now <= val_id_num; now++) {
+    if (val_id[now] < q) {
+      F[now] = 1;
+    } else if (val_id[now] < q * q) {
+      F[now] = 1 + (f_p[now][0] - f_p[q - 1][0]);
+    } else {
+      F[now] = 1 + (f_p[now][0] - f_p[q - 1][0]);
+      for (int pp = p_sz_3 + 1; p[pp] <= (int)(sqrt(val_id[now])) && pp <= p_sz_2; pp++) {
+        F[now] += f(p[pp], 2) + (f(p[pp], 1)) * (f_p[get_id(val_id[now] / p[pp])][0] - f_p[get_id(p[pp])][0]);
+      }
+    }
+  }
+}
+void get_f_6(ll n) { // V(F_{pi(n^(1/6))+1},n)
+  memset(c, 0, sizeof c), add(1, F[1]);
+  for (int i = 2; val_id[i] < n / n_3; i++) add(i, F[i] - F[i - 1]);
+  for (int k = p_sz_3; k > p_sz_6; k--) {
+    int now = val_id_num;
+    for (; val_id[now] >= n / n_3; now--) {
+      int e = 1;
+      ll _p = p[k];
+      while (val_id[now] / _p) {
+        if (val_id[now] / _p >= n / n_3) {
+          F[now] += F[get_id(val_id[now] / _p)] * f(p[k], e);
+        } else {
+          F[now] += sum(get_id(val_id[now] / _p)) * f(p[k], e);
+        }
+        _p *= p[k], e++;
+      }
+    }
+    if (k == 1) break;
+    update_bfs(k, -1); // bfs to update [lpf(i)==P{k-1}]f(i)
+  }
+  for (int i = 1; i <= val_id_num && val_id[i] < n / n_3; i++) F[i] = sum(i);
+}
+void get_f(ll n) {
+  for (int k = p_sz_6; k >= 1; k--) {
+    for (int now = val_id_num; now >= 1; now--) {
+      int e = 1;
+      ll _p = p[k];
+      while (val_id[now] / _p) {
+        F[now] += F[get_id(val_id[now] / _p)] * f(p[k], e);
+        _p *= p[k], e++;
+      }
+    }
+  }
+}
+int main() { // n = 1000000000; 1e10:455052511,0.83s/0.58s; 1e12:37607912018 9.224s/5.105s
+  cin >> n;
+  init();
+  get_f_p(n, 2), get_f_3(n);
+  get_f_6(n), get_f(n);
+  for (int i = 1; i <= val_id_num; i++) cout << val_id[i] << " : " << F[i] << endl;
+}
+\end{lstlisting}

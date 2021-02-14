@@ -1,7 +1,5 @@
-#include <cstdio>
-#include <cstring>
-#include <queue>
-using namespace std;
+\subsection{高标预流推进}
+\begin{lstlisting}
 const int N = 1e4 + 4, M = 2e5 + 5, INF = 0x3f3f3f3f;
 int n, m, s, t;
 
@@ -80,12 +78,4 @@ int hlpp() {                 // 返回最大流
   }
   return ex[t];
 }
-int main() {
-  scanf("%d%d%d%d", &n, &m, &s, &t);
-  for (int i = 1, u, v, w; i <= m; i++) {
-    scanf("%d%d%d", &u, &v, &w);
-    add_flow(u, v, w);
-  }
-  printf("%d", hlpp());
-  return 0;
-}
+\end{lstlisting}
