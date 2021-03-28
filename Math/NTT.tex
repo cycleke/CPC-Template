@@ -4,21 +4,23 @@
 786433 原根为 10，
 880803841 原根为 26。
 \begin{lstlisting}
-int rev[MAXN];
 void ntt(int *x, int n, int sign) {
   for (int i = 0; i < n; ++i)
     if (rev[i] < i) swap(x[i], x[rev[i]]);
   for (int j = 1; j < n; j <<= 1) {
-    int wn = mpow(G, (P - 1) / (j << 1));
+    int gn = mpow(G, (P - 1) / (j << 1));
     for (int i = 0; i < n; i += (j << 1)) {
-      for (int k = 0, w = 1; k < j; ++k, w = 1ll * w * wn % P) {
-        int &a = x[i + j + k], &b = x[i + j], t = 1ll * w * a % P;
+      for (int k = 0, g = 1; k < j; ++k, g = 1ll * g * gn % P) {
+        int &a = x[i + j + k], &b = x[i + k], t = 1ll * g * a % P;
         (a = b - t) < 0 ? a += P : 0;
         (b = b + t) >= P ? b -= P : 0;
       }
     }
   }
-  if (sign == -1)
-    for (int i = 0, inv = mpow(n, P - 2); i < n; ++i) x[i] = 1ll * x[i] * inv % P;
+  if (sign == -1) {
+    reverse(x + 1, x + n);
+    for (int i = 0, inv = mpow(n, P - 2); i < n; ++i)
+      x[i] = 1ll * x[i] * inv % P;
+  }
 }
 \end{lstlisting}

@@ -17,7 +17,6 @@ void fft(complex<double> *a, int sign) {
       for (int k = 0; k < j; ++k, w *= wn) {
         t0 = a[i + k], t1 = w * a[i + j + k];
         a[i + k] = t0 + t1, a[i + j + k] = t0 - t1;
-        w *= wn;
       }
     }
   }

@@ -1,34 +1,39 @@
 \subsection{Vim 配置}
 \begin{lstlisting}[language=sh]
-syntax enable
-set syntax=on
-set nobackup
-set noswapfile
-set noundofile
-set nu
-set smartindent
-set cindent
-set noeb
-set tabstop=2
-set softtabstop=2
-set shiftwidth=2
-set expandtab
+syntax on
+set tabstop=2 softtabstop=2 shiftwidth=2 expandtab smarttab autoindent
+set incsearch ignorecase smartcase hlsearch
+set ruler laststatus=2 showcmd showmode
+set nobackup noswapfile noundofile autowrite noerrorbells
+set wrap breakindent encoding=utf-8 number title cursorline
 
-:imap jk <Esc>
+autocmd filetype c nnoremap <F5> :w <bar> exec '!gcc '.shellescape('%').' -o '.shellescape('%:r').' -std=c11 -Wall && ./'.shellescape('%:r')<CR>
+autocmd filetype cpp nnoremap <F5> :w <bar> exec '!g++ '.shellescape('%').' -o '.shellescape('%:r').' -std=c++17 -Wall && ./'.shellescape('%:r')<CR>
+autocmd filetype java nnoremap <F5> :w <bar> exec '!javac -encoding UTF-8 -sourcepath . -d . '.shellescape('%').' && java '.shellescape('%:r')<CR>
 
-map <F5> : call Complie() <CR>
-func Complie()
-	exec "w"
-	exec "!g++ % -o %< -g -Wall -std=gnu++14 -static"
-endfunc
+autocmd filetype c nnoremap <F6> :w <bar> exec '!gcc '.shellescape('%').' -o '.shellescape('%:r').' -std=c11 -Wall -g && gdb '.shellescape('%:r')<CR>
+autocmd filetype cpp nnoremap <F6> :w <bar> exec '!g++ '.shellescape('%').' -o '.shellescape('%:r').' -std=c++17 -Wall -g && gdb '.shellescape('%:r')<CR>
 
-map <F6> : call Run() <CR>
-func Run()
-	exec "!./%<"
-endfunc
+function! TrimWhitespace()
+    let l:save = winsaveview()
+    %s/\\\@<!\s\+$//e
+    call winrestview(l:save)
+endfunction
 
-map <F9> : call DeBug() <CR>
-func DeBug()
-	exec "!gdb %<"
-endfunc
+imap jk <Esc>
+nmap t :call TrimWhitespace()<CR>
+
+nmap <M-1> 1gt
+nmap <M-2> 2gt
+nmap <M-3> 3gt
+nmap <M-4> 4gt
+nmap <M-5> 5gt
+nmap <M-6> 6gt
+nmap <M-7> 7gt
+nmap <M-8> 8gt
+nmap <M-9> 9gt
+nmap <M-t> :tabnew<CR>
+nmap <M-w> :close<CR>
+nmap <Tab> :tabnext<CR>
+nmap <S-Tab> :tabprevious<CR>
 \end{lstlisting}
